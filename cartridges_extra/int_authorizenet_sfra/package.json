@@ -1,0 +1,6 @@
+{
+  "init": [
+    "./cartridge/scripts/init/authorizenetServiceInit.js"
+  ],
+  "hooks": "./cartridge/scripts/hooks.json"
+}

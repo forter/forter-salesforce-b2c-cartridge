@@ -1,0 +1,115 @@
+/**
+*	Update transactionID and transactions history for PayPal payment instrument
+*
+*	@input OrderNo : String order number
+*	@input IsCustomOrder : Boolean Indicate if current order is Custom Object
+*	@input TransactionID : String paypal transaction ID
+*	@input MethodName : String Used API method
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var logger : dw.system.Log = paypalHelper.getLogger();
+
+
+function execute( args : PipelineDictionary ) : Number {
+
+	try {
+		if(args.IsCustomOrder) {
+			updateCustomOrderData(args.OrderNo, args.TransactionID);
+		} else {
+			updateOrderData(args.OrderNo, args.TransactionID, args.MethodName);
+		}
+	} catch(error) {
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}
+
+/**
+ * Create transaction history array
+ * @param  customObj {dw.object.CustomAttributes} Custom properties
+ * @param  transactionId {String} Transaction ID from new transaction
+ */
+function writeTransactionHistory(customObj : dw.object.CustomAttributes, transactionId: String) {
+	let transactionsHistory : Array = [];
+	let transactionID : String;
+
+	for each (transactionID in customObj.transactionsHistory) {
+		transactionsHistory.push(transactionID);
+	}
+
+	transactionsHistory.push(transactionId);
+	customObj.transactionsHistory = transactionsHistory;
+}
+
+/**
+ * Get initial transaction payment status
+ * @param  transactionId {String} Initial transaction id
+ * @return {String} Initial transaction payment status
+ */
+function getPaymentStatus(transactionId) : String {
+	try {
+		var transactionDetails : String = paypalHelper.getTransactionDetails(transactionId);
+	} catch(error) {
+		throw new Error(error);
+	}
+	
+	if (transactionDetails.ack === 'Success') {
+		return transactionDetails.paymentstatus;
+	} else {
+		throw new Error();
+	}
+}
+
+/**
+ * Update transaction history of a PayPalNewTransactions Custom Object
+ * @param  orderNo {String} Order number
+ * @param  transactionId {String} Transaction ID from new transaction 
+ */
+function updateCustomOrderData(orderNo : String, transactionId : String) {
+	try {
+		var order : dw.object.CustomObject = dw.object.CustomObjectMgr.getCustomObject('PayPalNewTransactions', orderNo);
+		var paymentStatus : String = getPaymentStatus(order.custom.transactionsHistory[0]);
+	} catch (error) {
+		logger.error(error);
+		throw new Error(error);
+	}
+
+	writeTransactionHistory(order.custom, transactionId);
+	order.custom.transactionId = transactionId;
+	order.custom.paymentStatus = paymentStatus;
+}
+
+/**
+ * Update transaction history of a Order
+ * @param  orderNo {String} Order number
+ * @param  transactionId {String} Transaction ID from new transaction 
+ */
+function updateOrderData(orderNo: String, transactionId: String, methodName: String) {
+	try {
+		var order : dw.order.LineItemCtnr = dw.order.OrderMgr.getOrder(orderNo);
+		var paymentInstrument : dw.order.OrderPaymentInstrument = paypalHelper.getPaypalExpressPaymentInstrument(order);
+		var paymentTransaction : dw.order.PaymentTransaction = paymentInstrument.getPaymentTransaction();
+		var paymentStatus : String = getPaymentStatus(paymentTransaction.custom.transactionsHistory[0]);
+	} catch (error) {
+		logger.error(error);
+		throw new Error(error);
+	}
+
+	if (empty(order)) {
+		throw new Error();
+	}
+
+	writeTransactionHistory(paymentTransaction.custom, transactionId);
+	paymentTransaction.setTransactionID(transactionId);
+	paymentInstrument.custom.paypalPaymentStatus = paymentStatus;
+	
+	if (paymentStatus === 'Completed') {
+		order.setPaymentStatus(dw.order.Order.PAYMENT_STATUS_PAID);		
+	} else if (paymentStatus === 'In-Progress' && methodName === 'DoCapture') {
+		order.setPaymentStatus(dw.order.Order.PAYMENT_STATUS_PARTPAID);
+	}
+}
+

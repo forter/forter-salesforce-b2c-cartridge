@@ -1,0 +1,22 @@
+<iscontent type="application/json" charset="UTF-8" compact="true"/>
+
+<isscript>
+	var data : Object = {};
+	
+	if(!empty(pdict.ResponseData)) {
+		var hashMap : dw.util.HashMap = pdict.ResponseData.data;
+		var keys : dw.util.Set = hashMap.keySet();
+		var key : String;
+		
+		for(var i = 0, lenght = keys.size(); i < lenght; i++) {
+			let key : String = keys[i];
+			data[key] = hashMap.get(key);
+		}
+	}
+	
+	if(!empty(pdict.ResponseResult)) {
+		data['result'] = pdict.ResponseResult;
+	}
+</isscript>
+
+<isprint value="${JSON.stringify(data)}" encoding="off"/>

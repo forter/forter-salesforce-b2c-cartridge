@@ -1,0 +1,10 @@
+<isdecorate template="paypalbm/util/pt_paypal">
+
+<table class="error_box n s e w">
+	<tr valign="top">
+		<td class="error_icon top e"></td>
+		<td class="error top" width="100%">${Resource.msg('server.error', 'paypalbm', null)}</td>
+	</tr>
+</table>
+
+</isdecorate>

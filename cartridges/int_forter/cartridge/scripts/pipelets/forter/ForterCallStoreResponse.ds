@@ -1,0 +1,17 @@
+/**
+ * @input ResponseType : String
+ * @input PaymentInstrument : dw.order.PaymentInstrument
+ * @input ResponseDataContainer : Object
+ */
+
+function execute(args) {
+    var argResponse = {
+        PaymentInstrument: args.PaymentInstrument,
+        ResponseDataContainer: args.ResponseDataContainer,
+        ResponseType: args.ResponseType
+    };
+    var forterController = require('*/cartridge/controllers/ForterValidate');
+    var forterDecision = forterController.StoreResponse(argResponse);
+
+    return PIPELET_NEXT;
+}

@@ -1,0 +1,1074 @@
+var order : Object = require('dw/order');
+var catalog : Object = require('dw/catalog');
+var util : Object = require('dw/util');
+var system : Object = require('dw/system');
+var value : Object = require('dw/value');
+var svc : Object = require('dw/svc');
+var campaign : Object = require('dw/campaign');
+
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+var PaypalHelper : Object = {};
+
+
+/**
+ * Returns object with data for SetExpressCheckout call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} basket object
+ * @param returnUrl {String} URL address, on which PayPal a buyer should be returned  after Express Checkout
+ * @param isPayPalCredit {Boolean} indicate if PayPal credit (BML) flow is active
+ * @param isBillingAgreement {Boolean} indicate if Billing Agreement should be proposed to customer
+ * @param paypalCheckoutFromCart {Boolean} indicate if PayPal payment triggered from cart
+ * @param isRefund {Boolean} indicate, if current transaction is a Refund operation
+ * @returns {dw.util.HashMap} requested data
+ */
+PaypalHelper.createSetExpressCheckoutRequestData = function (lineItemContainer : order.LineItemCtnr, returnUrl : String, isPayPalCredit : Boolean, isBillingAgreement : Boolean, paypalCheckoutFromCart : Boolean, isRefund : Boolean) : util.HashMap {
+
+	var request : util.HashMap = new util.HashMap();
+
+	request.put('PAYMENTREQUEST_0_PAYMENTACTION', prefs.PP_API_ExpressPaymentAction);
+	request.put('REQCONFIRMSHIPPING', prefs.PP_API_ReqConfirmShipping ? 1 : 0);
+	request.put('NOSHIPPING', prefs.PP_API_NoShipping);
+	request.put('ALLOWNOTE', prefs.PP_API_AllowNote ? 1 : 0);
+	request.put('ADDROVERRIDE', prefs.PP_API_ShippingAddressOverride ? 1 : 0);
+	request.put('REQBILLINGADDRESS', prefs.PP_API_RequestBillingAddressFromPayPal ? 1 : 0);
+	request.put('SOLUTIONTYPE', prefs.PP_SolutionType);
+	request.put('LANDINGPAGE', prefs.PP_Landing_Page);
+	request.put('RETURNURL', returnUrl);
+	request.put('CANCELURL', paypalCheckoutFromCart ? prefs.paypalFromCartCancelUrl : prefs.paypalCancelUrl);
+	request.put('USERSELECTEDFUNDINGSOURCE', isPayPalCredit ? 'Finance' : null);
+	
+	if (isBillingAgreement) {
+	 	request.put('BILLINGTYPE', prefs.PP_Billing_type);
+	 	request.put('BILLINGAGREEMENTDESCRIPTION', truncatePreferenceString(prefs.PP_API_BillingAgreementDescription));
+	 	request.put('PAYMENTTYPE', prefs.PP_API_BillingAgreementPaymentType);
+	 }
+
+	var customerEmail : String = lineItemContainer.getCustomerEmail();
+
+	request.put('EMAIL', customerEmail);
+
+	var siteLocale : String = system.Site.getCurrent().getDefaultLocale();
+
+	if (siteLocale != 'default' && prefs.PP_API_Use_The_Same_Locale) {
+		request.put('LOCALECODE', siteLocale);
+	}
+
+	if (isRefund) {
+		request.put('PAYMENTREQUEST_0_PAYMENTREASON', 'Refund'); 
+	}
+
+	// Get shipping and payment data prepared for request and append it to existing request data object
+	var shippingRequestData : util.HashMap = getShippingRequestData(lineItemContainer);
+	var paymentRequestData : util.HashMap = getPaymentRequestData(lineItemContainer);
+	var lineItems : Object = getProductLineItemsRequestData(lineItemContainer);
+	var lineItemsRequestData : util.HashMap = lineItems.productLineItemsRequestData;
+	var count : Number = lineItems.index;
+	var giftLineItemsRequestData : util.HashMap = getGiftLineItemsRequestData(lineItemContainer, count);
+	var pageDecoration : util.HashMap = getPageDecorationParameters();
+
+	request.putAll(giftLineItemsRequestData);
+	request.putAll(shippingRequestData);
+	request.putAll(paymentRequestData);
+	request.putAll(lineItemsRequestData);
+	request.putAll(pageDecoration);
+
+	return request;
+};
+
+/**
+ * Returns object with data for DoExpressCheckout call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @param paymentInstrument {dw.order.OrderPaymentInstrument} order payment isnstrument with token and paypalPayerID from SetExpressCheckout call
+ * @returns {dw.util.HashMap} request data
+ */
+PaypalHelper.createDoExpressCheckoutRequestData = function (lineItemContainer : order.LineItemCtnr, paymentInstrument : order.OrderPaymentInstrument) : util.HashMap {
+
+	var request : util.HashMap = new util.HashMap();
+
+	request.put('PAYMENTREQUEST_0_PAYMENTACTION', prefs.PP_API_ExpressPaymentAction);
+	request.put('BUTTONSOURCE', prefs.PP_API_ButtonSource);
+	request.put('PAYERID', paymentInstrument.custom.paypalPayerID);
+	request.put('TOKEN', paymentInstrument.custom.paypalToken);
+	request.put('PAYMENTREQUEST_0_INVNUM', lineItemContainer.getOrderNo());
+
+	var shippingRequestData : util.HashMap = getShippingRequestData(lineItemContainer);
+	var paymentRequestData : util.HashMap = getPaymentRequestData(lineItemContainer);
+	var lineItems : Object = getProductLineItemsRequestData(lineItemContainer);
+	var lineItemsRequestData = lineItems.productLineItemsRequestData;
+	var count : Number = lineItems.index;
+	var giftLineItemsRequestData : util.HashMap = getGiftLineItemsRequestData(lineItemContainer, count);
+
+	request.putAll(shippingRequestData);
+	request.putAll(paymentRequestData);
+	request.putAll(giftLineItemsRequestData);
+	request.putAll(lineItemsRequestData);
+
+	return request;
+
+};
+
+/**
+ * Executes http request
+ *
+ * @param service {dw.svc.Service} service from business manager with configuration
+ * @param requestDataContainer {Object} request data
+ * @param logger {dw.system.Log} logger for operation
+ * @returns {Object} call response
+ */
+PaypalHelper.call = function (service : svc.Service, requestDataContainer : Object, logger : system.Log) : Object {
+
+	if (service == null) {
+		throw new Error('Service is undefine. Method specified : ' + method);
+	}
+
+	if (empty(logger)) {
+		var logger : system.Log = this.getLogger();
+	}
+
+	var result : svc.Result = service.setThrowOnError().call(requestDataContainer, logger);
+
+	if (!result.isOk()) {
+		logger.error(result.getMsg());
+	}
+
+	var responseData : util.HashMap = service.getResponse();
+
+	return responseData;
+};
+
+/**
+ * Creates or get logger
+ *
+ * @param method {String} API operation
+ * @returns {dw.system.Log} logger for API operation
+ */
+PaypalHelper.getLogger = function (method : String) : system.Log {
+	var categoryName : String = 'PayPal_General';
+	var fileName : String = method == 'Notification' ? 'PayPalNotifications' : 'PayPal';
+
+	if (method) {
+		var methodPreferences : Object = prefs.getMethodPreferences(method);
+		if (!empty(methodPreferences) && methodPreferences.logCategory) {
+			categoryName = methodPreferences.logCategory;
+		}
+	}
+
+	return system.Logger.getLogger(fileName, categoryName);
+};
+
+/**
+ * Returns requested object with data for TransactionSearch call
+ *
+ * @param data {Object} input data from script pipelet
+ * @returns {Object} request data
+ */
+PaypalHelper.createTransactionSearchRequestData = function (data : Object) : util.HashMap {
+	var params : util.HashMap = new util.HashMap();
+
+	params.put('AMT', data.AMT);
+	params.put('CURRENCYCODE', data.CURRENCYCODE);
+	params.put('ENDDATE', createISODate(data.ENDDATE));
+	params.put('FIRSTNAME', data.FIRSTNAME);
+	params.put('INVNUM', data.INVNUM);
+	params.put('LASTNAME', data.LASTNAME);
+	params.put('MIDDLENAME', data.MIDDLENAME);
+	params.put('RECEIPTID', data.RECEIPTID);
+	params.put('RECEIVER', data.RECEIVER);
+	params.put('SALUTATION', data.SALUTATION);
+	params.put('STARTDATE', createISODate(data.STARTDATE));
+	params.put('STATUS', data.STATUS);
+	params.put('SUFFIX', data.SUFFIX);
+	params.put('TRANSACTIONCLASS', data.TRANSACTIONCLASS);
+	params.put('TRANSACTIONID', data.TRANSACTIONID);
+
+	return params;
+};
+
+/**
+ * Returns requested object with data for DirectPayment call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} basket object
+ * @param cvn {String} cnv code
+ * @param ip {String} customer's ip address
+ * @returns {dw.util.HashMap} request data
+ */
+PaypalHelper.createDirectPaymentData = function (lineItemContainer : order.LineItemCtnr, cvn : String, ip : String) : util.HashMap {
+
+	var params : util.HashMap = new util.HashMap();
+	var orderPaymentInstruments : util.Collection = lineItemContainer.getPaymentInstruments();
+	var paymentInstrument : order.OrderPaymentInstrument = getCreditPaymentInstrument(orderPaymentInstruments);
+	var shipmentData : HashMap = getCreditShippingRequestData(lineItemContainer);
+	var billingAddress : order.OrderAddress = lineItemContainer.getBillingAddress();
+
+	params.put('IPADDRESS', ip);
+	params.put('ACCT', paymentInstrument.getCreditCardNumber());
+	params.put('EXPDATE', formExpDate(paymentInstrument));
+	params.put('CVV2', cvn);
+	params.put('TYPE', paymentInstrument.getCreditCardType());
+	params.put('FIRSTNAME', billingAddress.getFirstName());
+	params.put('LASTNAME', billingAddress.getLastName());
+	params.put('EMAIL', lineItemContainer.getCustomerEmail());
+	params.put('AMT', paymentInstrument.getPaymentTransaction().getAmount().getValueOrNull());
+	params.put('CURRENCYCODE', lineItemContainer.getCurrencyCode());
+	params.put('PAYMENTACTION', prefs.PP_API_PaymentsProPaymentAction);
+	params.put('STREET', billingAddress.getAddress1());
+	params.put('STREET2', billingAddress.getAddress2());
+	params.put('CITY', billingAddress.getCity());
+	params.put('STATE', billingAddress.getStateCode());
+	params.put('COUNTRYCODE', String(billingAddress.getCountryCode().getValue()).toUpperCase());
+	params.put('ZIP', billingAddress.getPostalCode());
+
+	params.putAll(shipmentData);
+
+	return params;
+}
+
+/**
+ * Returns requested object with data for ReferenceTransaction call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} request data
+ */
+PaypalHelper.createReferenceTransactionRequestData = function (lineItemContainer : order.LineItemCtnr) : util.HashMap {
+
+	var params : util.HashMap = new util.HashMap();
+	var shipmentData : HashMap = getCreditShippingRequestData(lineItemContainer);
+	var lineItems : Object = getReferenceTransactionLineItemsDetalis(lineItemContainer);
+	var lineItemsRequestData : util.HashMap = lineItems.productLineItemsRequestData;
+	var count : Number = lineItems.index;
+	var giftLineItemsRequestData : util.HashMap = getGiftLineItemsRequestData(lineItemContainer, count);
+	var orderInfo : util.HashMap = getReferenceTransactionPaymentDetalis(lineItemContainer);
+
+	params.put('BUTTONSOURCE', prefs.PP_API_ButtonSource);
+	params.put('PAYMENTACTION', prefs.PP_API_ReferenceTransactionPaymentAction);
+
+	params.putAll(shipmentData);
+	params.putAll(lineItemsRequestData);
+	params.putAll(orderInfo);
+
+	return params;
+}
+
+/**
+ * Returns site preferences from Preference.ds file 
+ *
+ * @returns {Object} object with preferences
+ */
+PaypalHelper.getPrefs = function () : Object {
+	return prefs;
+}
+
+/**
+ * Return paypal order payment instrument
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.order.OrderPaymentInstrument} payment instrument with id PAYPAL_EXPRESS
+ */
+PaypalHelper.getPaypalExpressPaymentInstrument = function (lineItemContainer : order.LineItemCtnr) : order.OrderPaymentInstrument {
+	var paymentInstruments : util.Collection = lineItemContainer.getPaymentInstruments();
+	var paypalPaymentInstrument : order.OrderPaymentInstrument = null;
+
+	for each (let paymentInstrument : order.OrderPaymentInstrument in paymentInstruments) {
+		
+		let paymentProcessor : order.PaymentProcessor = paymentInstrument.getPaymentTransaction().getPaymentProcessor();
+		let paymentProcessorId : String = paymentProcessor ? paymentProcessor.getID(): paymentInstrument.getPaymentMethod(); // For Gift Certificates: If no Payment Processor ID available
+
+		//Defined paymentProcessor ID
+		if (paymentProcessorId == 'PAYPAL_EXPRESS' || paymentProcessorId == 'PayPal' || paymentProcessorId == 'BML' || paymentProcessorId == "PAYPAL_CREDIT") {
+			paypalPaymentInstrument = paymentInstrument;
+			break;
+		}
+	}
+
+	return paypalPaymentInstrument;
+}
+
+/**
+ * Converts map to object
+ *
+ * @param map {dw.util.Map}
+ * @returns {Object} filtered
+ */
+PaypalHelper.mapToObject = function (map : util.Map) : Object {
+
+	if (empty(map)) {
+		throw new Error('Cannot convert non map object or its sub class instance');
+	}
+
+	var data : Object = {};
+	var keys : dw.util.Set = map.keySet();
+
+	for (var i = 0, lenght = keys.size(); i < lenght; i++) {
+		let key : String = keys[i];
+		data[key] = map.get(key);
+	}
+
+	return data;
+}
+
+/**
+ * Return array with counties code and names
+ * @return {Array}
+ */
+PaypalHelper.getCountriesFields = function(): Array {
+	var countriesCodes: Array = ['US', 'AF', 'AL', 'DZ', 'AS', 'AD', 'AO', 'AI', 'AQ', 'AG', 'AR', 'AM', 'AW', 'AU', 'AT', 'AZ', 'BS', 'BH', 'BD', 'BB', 'BY', 'BE', 'BZ', 'BJ', 'BM', 'BT', 'BO', 'BQ', 'BA', 'BW', 'BV', 'BR', 'IO', 'BN', 'BG', 'BF', 'BI', 'KH', 'CM', 'CA', 'CV', 'KY', 'CF', 'TD', 'CL', 'CN', 'CX', 'CC', 'CO', 'KM', 'CG', 'CD', 'CK', 'CR', 'HR', 'CU', 'CW', 'CY', 'CZ', 'CI', 'DK', 'DJ', 'DM', 'DO', 'EC', 'EG', 'SV', 'GQ', 'ER', 'EE', 'ET', 'FK', 'FO', 'FJ', 'FI', 'FR', 'GF', 'PF', 'FQ', 'GA', 'GM', 'GE', 'DE', 'GH', 'GI', 'GR', 'GL', 'GD', 'GP', 'GU', 'GT', 'GG', 'GN', 'GW', 'GY', 'HT', 'HM', 'HN', 'HK', 'HU', 'IS', 'IN', 'ID', 'IR', 'IQ', 'IE', 'IM', 'IL', 'IT', 'JM', 'JP', 'JE', 'JO', 'KZ', 'KE', 'KI', 'KP', 'KR', 'KW', 'KG', 'LA', 'LV', 'LB', 'LS', 'LR', 'LY', 'LI', 'LT', 'LU', 'MO', 'MK', 'MG', 'MW', 'MY', 'MV', 'ML', 'MT', 'MH', 'MQ', 'MR', 'MU', 'YT', 'MX', 'FM', 'MD', 'MC', 'MN', 'ME', 'MS', 'MA', 'MZ', 'MM', 'NA', 'NR', 'NP', 'NL', 'AN', 'NC', 'NZ', 'NI', 'NE', 'NG', 'NU', 'NF', 'MP', 'NO', 'OM', 'PK', 'PW', 'PS', 'PA', 'PG', 'PY', 'PE', 'PH', 'PN', 'PL', 'PT', 'PR', 'QA', 'RE', 'RO', 'RU', 'RW', 'BL', 'SH', 'KN', 'LC', 'MF', 'PM', 'VC', 'WS', 'SM', 'ST', 'SA', 'SN', 'RS', 'SC', 'SL', 'SG', 'SX', 'SK', 'SI', 'SB', 'SO', 'ZA', 'GS', 'SS', 'ES', 'LK', 'SD', 'SR', 'SJ', 'SZ', 'SE', 'CH', 'SY', 'TW', 'TJ', 'TZ', 'TH', 'TL', 'TG', 'TK', 'TO', 'TT', 'TN', 'TR', 'TM', 'TC', 'TV', 'UG', 'UA', 'AE', 'GB', 'UM', 'US', 'UY', 'UZ', 'VU', 'VA', 'VE', 'VN', 'VG', 'VI', 'WF', 'EH', 'YE', 'ZM', 'ZW', 'AX'];
+	var countriesOptions: Array = [];
+	countriesCodes.forEach(function(code) {
+		countriesOptions.push({
+			value: code,
+			label: dw.web.Resource.msg('country.' + code.toLocaleLowerCase(), 'paypalbm', null)
+		});
+	});
+	return countriesOptions;
+};
+
+/**
+ * Parses response and remove unnecessary information
+ *
+ * @param data {dw.util.HashMap} response data
+ * @returns {Array} filtered response message
+ */
+PaypalHelper.parseResponseForMessages = function (data : util.HashMap) : Array {
+	var messages : Array = [];
+
+	for (let i = 0, len = data.size(); i < len; i++) {
+
+		let message : String = null;
+
+		let errorcodeIndex : String = 'l_errorcode' + i;
+		let shortMessageIndex : String = 'l_shortmessage' + i;
+		let longMessageIndex : String = 'l_longmessage' + i;
+
+		if (data.containsKey(errorcodeIndex)) {
+			message = 'Error Code: ' + data.get(errorcodeIndex) + '; Short Message: ' + data.get(shortMessageIndex) + '; Long Message: ' + data.get(longMessageIndex)
+			messages.push(message);
+		} else {
+			continue;
+		}
+	}
+
+	return messages;
+}
+
+/**
+ * Return Customer Billing Agreement Object for work with customer Billing Agreement Data which is related with customer
+ *
+ * @param customer {dw.customer.Customer}
+ * @returns {Object} Customer Billing Agreement Object
+ */
+PaypalHelper.getCustomerBillingAgreement = function(customer : dw.customer.Customer) : Object {
+	var customerBillingAgreement : Object = {
+			hasAnyBillingAgreement: false,
+			isCheckedUseCheckbox: true,
+			savedData: {
+				items: []
+			},
+			add: function(item : Object) {
+				if(empty(item.email) || empty(item.id)) {
+					return false;
+				}
+				if(!this.hasAnyBillingAgreement) {
+					this.items = [];
+				}
+				for(let i = 0; i < this.items.length; i++) {
+					if(this.items[i].id == item.id) {
+						return true;
+					}
+				}
+				item.time = Date.now();
+				this.items.push(item);
+				this._commit();
+				return true;
+			},
+			remove: function(billingAgreementId : String) {
+				if(empty(billingAgreementId)) {
+					return false;
+				}
+				this.items = this.items.filter(function(item) {
+					return item.id !== billingAgreementId;
+				});
+				this._commit();
+			},
+			getDefault: function() {
+				if(this.items && this.items[0]) {
+					return this.items[0];
+				}
+				return {
+					id: null,
+					email: null
+				};
+			},
+			removeAll: function() {
+				this.items = [];
+				this._commit();
+			},
+			setUseCheckboxState: function(state : Boolean) {
+				this.isCheckedUseCheckbox = !!state;
+				this._commit();
+			},
+			getDefaultShippingAddress: function() {
+				var addressBook : dw.customer.AddressBook = customer.profile.addressBook;
+				for each(let address in addressBook.addresses) {
+					if(address.custom.isPaypalDefaultShippingAddress) {
+						return address;
+					}
+				}
+				return null;
+			},
+			_commit: function() {
+				this.savedData.items = this.items || [];
+				this.savedData.isCheckedUseCheckbox = this.isCheckedUseCheckbox;
+				if(customer.profile) {
+					if(this.savedData.items && this.savedData.items.length > 0) {
+						customer.profile.custom.paypalBillingAgreementData = JSON.stringify(this.savedData);
+						this.hasAnyBillingAgreement = true;
+					} else {
+						customer.profile.custom.paypalBillingAgreementData = null;
+						this.hasAnyBillingAgreement = false;
+					}
+				}
+			}
+	};
+	if(!customer || customer.authenticated === false) {
+		return customerBillingAgreement;
+	}
+	if(!customer.profile.custom.paypalBillingAgreementData) {
+		return customerBillingAgreement;
+	}
+	try {
+		customerBillingAgreement.savedData = JSON.parse(customer.profile.custom.paypalBillingAgreementData);
+		customerBillingAgreement.items = customerBillingAgreement.savedData.items;
+		customerBillingAgreement.isCheckedUseCheckbox = customerBillingAgreement.savedData.isCheckedUseCheckbox === false ? false : true;
+		if(customerBillingAgreement.items.length > 0) {
+			customerBillingAgreement.hasAnyBillingAgreement = true;
+		}
+	} catch(error) {
+		return customerBillingAgreement;
+	}
+	return customerBillingAgreement;
+}
+
+/**
+ * Returns Object with first, second, last names from a simple string person name
+ *
+ * @param name {String} Person Name 
+ * @returns {Object} person name Object
+ */
+PaypalHelper.createPersonNameObject = function(name : String) : Object {
+	name = name || '';
+	var names = name.trim().replace(/\s\s+/g, ' ').split(' ');
+	var firstName : String = names[0];
+	var secondName : String = null;
+	var lastName : String = null;
+
+	if (names.length === 3) {
+		secondName = names[1];
+		lastName = names[2];
+	} else if (names.length === 2) {
+		lastName = names[1];
+	} else {
+		firstName = name;
+	}
+
+	return {
+		firstName : firstName,
+		secondName : secondName,
+		lastName : lastName
+	};
+}
+
+/**
+ * Returns array with field options
+ *
+ * @param formField {dw.web.FormField}
+ * @param resourceFile {String} 
+ * @returns {Array} Array of options
+ */
+PaypalHelper.getFieldOptions = function(formField : dw.web.FormField, resourceFile : String) {
+	if (empty(formField.options)) {
+		return {};
+	}
+	var fields = {};
+
+	var opts = formField.options;
+	for (o in opts) {
+		try {
+			if (opts[o] && opts[o].value && opts[o].value.length > 0) {
+				var option = opts[o];
+				fields[option.value] = dw.web.Resource.msg(option.label, resourceFile, option.label);
+			}
+		}
+		catch (error) {
+			if (!fields.error) {
+				fields.error = [];
+			}
+			fields.error.push("Error: "+error);
+		}
+	}
+
+	return fields;
+};
+
+
+/**
+ * Returns object with countries and regions
+ *
+ * @param addressForm {dw.web.FormGroup}
+ * @param resource {String} 
+ * @returns {Object} Array of options
+ */
+PaypalHelper.getCountriesAndRegions = function(addressForm : dw.web.FormGroup, resource : String) {
+
+	var list = {};
+	var countryField = addressForm.country;
+	var stateForm = addressForm.states;
+	var resourceName = resource || 'forms';
+
+	if (empty(countryField.options)) {
+		return list;
+	}
+
+	var countryOptions = countryField.options;
+	for (var o in countryOptions) {
+		try {
+			if (countryOptions[o] && countryOptions[o].value && countryOptions[o].value.length > 0) {
+				var option = countryOptions[o];
+				var stateField = stateForm["state" + option.value];
+				var postalField = addressForm["postal" + option.value];
+				list[option.value] = {
+					regionLabel: dw.web.Resource.msg(stateField.label, resourceName, stateField.label),
+					regions: PaypalHelper.getFieldOptions(stateField, resourceName),
+					postalLabel: dw.web.Resource.msg(postalField.label, resourceName, postalField.label)
+				};
+			}
+		}
+		catch (error) {
+			if (!list.error) {
+				list.error = [];
+			}
+			list.error.push("Error: "+error);
+		}
+	}
+	return list;
+};
+
+/**
+ * Return transaction delails by given id
+ * @param  transactionId: {String} transaction ID
+ * @return {Object} responce from API call with transaction details
+ */
+PaypalHelper.getTransactionDetails = function(transactionId: String) : Object {
+	try {
+		var service : dw.svc.Service = dw.svc.ServiceRegistry.get(prefs.nvpServiceName);
+		return this.call(service, {
+			method : prefs.api.GetTransactionDetails.method,
+			data : {TRANSACTIONID : transactionId}
+		});
+	} catch (error) {
+		this.getLogger.error(error);
+		throw new Error();
+	}
+}
+
+/**
+ * checkPaymentInstruments() check if payment instruments collection include PayPal instrument
+ *
+ * @param orderPaymentInstruments {dw.util.Collection} payment instrument from order
+ * @returns {Boolean} value that indicale if  PayPal payment instrument is availible in payment instruments collection
+ */
+PaypalHelper.checkPaymentInstruments = function(orderPaymentInstruments : util.Collection) : Boolean {
+
+	var isPayPal : Boolean = false;
+
+	if (orderPaymentInstruments.size() === 1) {
+		if (orderPaymentInstruments[0].getPaymentMethod() === 'PayPal') {
+			isPayPal = true;
+		}
+	}
+
+	return isPayPal;
+}
+
+/**
+ * isCountryCodesUpperCase()
+ * true - if SiteGenesis uses uppercase for country code values
+ * false - if SiteGenesis uses lowercase for country code values
+ *
+ * @returns {Boolean}
+ */
+PaypalHelper.isCountryCodesUpperCase = function() : Boolean {
+	var countryOptions = null;
+	var billingForm = session.forms.billing;
+	var isCountryUpperCase = true;
+	if(billingForm && billingForm.billingAddress && billingForm.billingAddress.addressFields && billingForm.billingAddress.addressFields.country) {
+		countryOptions = billingForm.billingAddress.addressFields.country.getOptions();
+		for each(let option in countryOptions) {
+			if(option.value && option.value.trim() !== '' && option.value === option.value.toLowerCase()) {
+				isCountryUpperCase = false;
+				break;
+			}
+		}
+	}
+	return isCountryUpperCase;
+}
+
+
+// Private module functions:
+
+/**
+ * Creates credit card expiration date in the proper format
+ *
+ * @param paymentInstrument {dw.order.OrderPaymentInstrument} order payment instrument with credit card data
+ * @returns {String} credit card expiration date
+ */
+function formExpDate(paymentInstrument : order.OrderPaymentInstrument) : String {
+	var currentMonth : Number = paymentInstrument.getCreditCardExpirationMonth();
+	
+	var formatMonth : String = currentMonth.length === 1 ? String(currentMonth) : '0' +  currentMonth; 
+	var year : String = String(paymentInstrument.getCreditCardExpirationYear());
+
+	return formatMonth + year;
+}
+
+/**
+ * Returns credit cart payment instrument from order payment instruments collection
+ *
+ * @param orderPaymentInstruments {dw.util.Collection} order payment instruments collection
+ * @returns {dw.util.Collection} credit card payment instrument
+ */
+function getCreditPaymentInstrument(orderPaymentInstruments : util.Collection) : order.OrderPaymentInstrument {
+
+	for each (let instrument : order.OrderPaymentInstrument in orderPaymentInstruments) {
+		if (instrument.getPaymentMethod() === 'CREDIT_CARD') {
+			return instrument;
+		}
+	}
+}
+
+/**
+ * Creates date to ISO formated string
+ *
+ * @param date {String} date in traditional new Date() javascript format
+ * @returns {String} date in UTC format
+ */
+function createISODate(date : String) : String {
+
+	var isoDate : String = null;
+
+	if (date) {
+		var timezone : String = (dw.system.Site.getCurrent().getTimezoneOffset() / (60 * 60 * 1000)).toString();
+		var GMT : String  = timezone.indexOf ('-') != -1 ? timezone : '+' + timezone;
+		var time : String = date + ' GMT +' + timezone + '00';
+		isoDate =  new Date(time).toISOString();
+	}
+
+	return isoDate;
+}
+
+/**
+ * Returns shipping data from order object for SetExpressCheckout call
+ *
+ * @param lineItemContainer {order.LineItemCtnr} basket object
+ * @returns {dw.util.HashMap} shipping data
+ */
+function getShippingRequestData(lineItemContainer : order.LineItemCtnr) : util.HashMap {
+
+	var shippingRequestData : util.HashMap = new util.HashMap();
+	var defaultShipment : order.Shipment = lineItemContainer.getDefaultShipment();
+	var shippingAddress : order.OrderAddress = defaultShipment.getShippingAddress();
+
+	if (!empty(shippingAddress) && shippingAddress != null) {
+
+		let storeName : String = shippingAddress.getFullName();
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOSTREET', shippingAddress.getAddress1());
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOSTREET2', shippingAddress.getAddress2());
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOCITY', shippingAddress.getCity());
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOCOUNTRYCODE', shippingAddress.getCountryCode().getValue().toUpperCase());
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTONAME', shippingAddress.custom.isStore ? decorateByShipToStorePrefix(storeName) : storeName);
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOPHONENUM', shippingAddress.getPhone());
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOSTATE', shippingAddress.getStateCode());
+		shippingRequestData.put('PAYMENTREQUEST_0_SHIPTOZIP', shippingAddress.getPostalCode());
+	}
+
+	return shippingRequestData;
+}
+
+/**
+ * Returns shipping data from order object for DoDirectPayment & DoReferenceTransaction API call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} shipping data
+ */
+function getCreditShippingRequestData(lineItemContainer : order.LineItemCtnr) : util.HashMap {
+
+	var shippingRequestData : util.HashMap = new util.HashMap();
+	var defaultShipment : order.Shipment = lineItemContainer.getDefaultShipment();
+	var shippingAddress : order.OrderAddress = defaultShipment.getShippingAddress();
+
+	shippingRequestData.put('SHIPTOSTREET', shippingAddress.getAddress1());
+	shippingRequestData.put('SHIPTOSTREET2', shippingAddress.getAddress2());
+	shippingRequestData.put('SHIPTOCITY', shippingAddress.getCity());
+	shippingRequestData.put('SHIPTOCOUNTRY', String(shippingAddress.getCountryCode().getValue()).toUpperCase());
+	shippingRequestData.put('SHIPTONAME', shippingAddress.getFullName());
+	shippingRequestData.put('SHIPTOSTATE', shippingAddress.getStateCode());
+	shippingRequestData.put('SHIPTOZIP', shippingAddress.getPostalCode());
+
+	return shippingRequestData;
+}
+
+/**
+ * Returns payment data from order object for SetExpressCheckout & DoExpressCheckout API call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} payment data
+ */
+function getPaymentRequestData(lineItemContainer : order.LineItemCtnr) : util.HashMap {
+
+	var paymentRequestData : util.HashMap = new util.HashMap();
+	var appliedGiftCertificatesAmount : value.Money = calculateAppliedGiftCertificatesAmount(lineItemContainer);
+	var amount : value.Money = lineItemContainer.getTotalGrossPrice().subtract(appliedGiftCertificatesAmount);
+	var itemsAmount : value.Money = lineItemContainer.getTotalNetPrice().subtract(appliedGiftCertificatesAmount).subtract(lineItemContainer.getAdjustedShippingTotalNetPrice());
+	var shippingDiscountAmount : value.Money = lineItemContainer.getAdjustedShippingTotalNetPrice().subtract(lineItemContainer.getShippingTotalNetPrice());
+
+	paymentRequestData.put('PAYMENTREQUEST_0_AMT', amount.getValue());
+	paymentRequestData.put('PAYMENTREQUEST_0_CURRENCYCODE', lineItemContainer.getCurrencyCode());
+	paymentRequestData.put('PAYMENTREQUEST_0_ITEMAMT', itemsAmount.getValue());
+	paymentRequestData.put('PAYMENTREQUEST_0_TAXAMT', lineItemContainer.getTotalTax().getValue());
+	paymentRequestData.put('PAYMENTREQUEST_0_SHIPPINGAMT', lineItemContainer.getShippingTotalPrice().getValue());
+	paymentRequestData.put('PAYMENTREQUEST_0_SHIPDISCAMT', shippingDiscountAmount.getValue());
+
+	return paymentRequestData;
+}
+
+/**
+ * Calculates amount of all applied Gift Certificates
+ * @param lineItemContainer {dw.order.LineItemCtnr} Order or Basket
+ * @returns {dw.value.Money}
+ */
+function calculateAppliedGiftCertificatesAmount(lineItemContainer : order.LineItemCtnr) : value.Money {
+
+	var amount : value.Money =  new value.Money(0, lineItemContainer.getCurrencyCode());
+	var paymentInstruments : util.Collection = lineItemContainer.getGiftCertificatePaymentInstruments();
+
+	for each (let paymentInstrument : order.PaymentInstrument in paymentInstruments) {
+		amount = amount.add(paymentInstrument.getPaymentTransaction().getAmount());
+	}
+
+	return amount;
+}
+
+/**
+ * Returns gift data from basket for SetExpressCheckout & DoExpressCheckout API call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} request data about gift items and certificates
+ */
+function getGiftLineItemsRequestData(lineItemContainer : order.LineItemCtnr, counter : Number) : util.HashMap {
+
+	var giftItems : util.Collection = lineItemContainer.getGiftCertificateLineItems();
+	var giftCertificates : util.Collection = lineItemContainer.getGiftCertificatePaymentInstruments();
+	var giftLineItems : util.HashMap = new util.HashMap();
+	var index : Number = counter;
+
+	for (let i = 0, len = giftItems.size(); i < len; i++) {
+
+		let giftLineItem : order.GiftCertificateLineItem = giftItems[i];
+
+		giftLineItems.put('L_PAYMENTREQUEST_0_NAME' + index, giftLineItem.getLineItemText());
+		giftLineItems.put('L_PAYMENTREQUEST_0_DESC' + index, truncatePreferenceString(giftLineItem.getLineItemText())); //Field quota from PayPal 127 characters max
+		giftLineItems.put('L_PAYMENTREQUEST_0_NUMBER' + index, giftLineItem.getGiftCertificateID() ? giftLineItem.getGiftCertificateID() : giftLineItem.getLineItemText());
+		giftLineItems.put('L_PAYMENTREQUEST_0_AMT' + index, giftLineItem.getBasePrice().getValueOrNull());
+		giftLineItems.put('L_PAYMENTREQUEST_0_QTY' + index, '1');
+
+		index++;
+	}
+
+	for (let i = 0, len = giftCertificates.size(); i < len; i++) {
+
+		let giftCertificate : order.OrderPaymentInstrument = giftCertificates[i];
+
+		giftLineItems.put('L_PAYMENTREQUEST_0_NAME' + index, giftCertificate.getPaymentMethod());
+		giftLineItems.put('L_PAYMENTREQUEST_0_DESC' + index, truncatePreferenceString(giftCertificate.getPaymentMethod())); //Field quota from PayPal 127 characters max
+		giftLineItems.put('L_PAYMENTREQUEST_0_NUMBER' + index, giftCertificate.getGiftCertificateCode());
+		giftLineItems.put('L_PAYMENTREQUEST_0_AMT' + index, (giftCertificate.getPaymentTransaction().getAmount().getValueOrNull() * -1)); //Multiply Number value to -1 to get negative value
+		giftLineItems.put('L_PAYMENTREQUEST_0_QTY' + index, '1');
+
+		index++;
+	}
+
+	return giftLineItems;
+}
+
+/**
+ * Returns payment detalis for DoReferenceTransaction API call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} payment request data
+ */
+function getReferenceTransactionPaymentDetalis(lineItemContainer : order.LineItemCtnr) : util.HashMap {
+
+	var data : util.HashMap = new util.HashMap();
+	var appliedGiftCertificatesAmount : value.Money = calculateAppliedGiftCertificatesAmount(lineItemContainer);
+	var amount : value.Money = lineItemContainer.getTotalGrossPrice().subtract(appliedGiftCertificatesAmount);
+	var itemsAmount : value.Money = lineItemContainer.getTotalNetPrice().subtract(appliedGiftCertificatesAmount).subtract(lineItemContainer.getAdjustedShippingTotalNetPrice());
+
+	data.put('AMT', amount.getValue());
+	data.put('CURRENCYCODE', lineItemContainer.getCurrencyCode());
+	data.put('ITEMAMT', itemsAmount.getValue());
+	data.put('TAXAMT', lineItemContainer.getTotalTax().getValue());
+	data.put('SHIPPINGAMT', lineItemContainer.getAdjustedShippingTotalNetPrice().getValue());
+
+	return data;
+}
+
+/**
+ * Returns line items information for DoReferenceTransaction API call
+ *
+ * @param lineItem {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} line items request data
+ */
+function getReferenceTransactionLineItemsDetalis(lineItemContainer : order.LineItemCtnr) : util.HashMap {
+
+	var lineItems : util.Collection = lineItemContainer.getAllLineItems();
+	var productLineItemsRequestData : util.HashMap = new util.HashMap();
+	var index : Number = 0;
+
+	for (let i = 0, len = lineItems.size(); i < len; i++) {
+
+		let productLineItem : order.ProductLineItem = lineItems[i];
+
+		if (productLineItem instanceof order.ProductLineItem || productLineItem instanceof dw.catalog.Variant) {
+
+			let product : catalog.Product = productLineItem.getProduct();
+			let productDescription : String = '';
+
+			if (!productLineItem.isBonusProductLineItem() && !productLineItem.isOptionProductLineItem() && !empty(product)) {
+
+				if (!empty(product.getShortDescription())) {
+					productDescription = product.getShortDescription().getMarkup();
+				} else if (!empty(product.getLongDescription())) {
+					productDescription = product.getLongDescription().getMarkup();
+				} else {
+					productDescription = dw.web.Resource.msg('paypal.referencetransaction.noitemdesc', 'locale', 'No description given');
+				}
+
+			} else {
+				productDescription = productLineItem.getProductName();
+			}
+			
+			productLineItemsRequestData.put('L_NAME' + index, productLineItem.getProductName());
+			productLineItemsRequestData.put('L_DESC' + index, truncatePreferenceString(productDescription)); //Field quota from PayPal 127 characters max
+			productLineItemsRequestData.put('L_NUMBER' + index, productLineItem.getProductID());
+			productLineItemsRequestData.put('L_AMT' + index, productLineItem.getBasePrice().getValueOrNull());
+			productLineItemsRequestData.put('L_QTY' + index, productLineItem.getQuantity().getValue());
+
+			index++;
+
+			var priceAdjustments : util.Collection = productLineItem.getPriceAdjustments();
+
+			if (priceAdjustments.size() > 0) {
+				for each (let priceAdjustment : order.PriceAdjustment in priceAdjustments) {
+
+					let promotion : campaign.Promotion = priceAdjustment.getPromotion();
+					let promotionClass : String = promotion.getPromotionClass();
+					
+					if (!empty(promotion) && promotionClass === campaign.Promotion.PROMOTION_CLASS_PRODUCT) {
+						let promotionName : String = promotion.getName() || dw.web.Resource.msg('paypal.adjustment', 'locale', null);
+						let promotionDesc : String = promotion.getCalloutMsg();
+						let coupon : String  = dw.web.Resource.msg('paypal.coupon', 'locale', null);
+
+						productLineItemsRequestData.put('L_NAME' +  index, promotion.isBasedOnCoupons() ? coupon : promotionName);
+						productLineItemsRequestData.put('L_QTY' + index, 1);
+						productLineItemsRequestData.put('L_AMT' + index, priceAdjustment.getBasePrice().getValueOrNull());
+						productLineItemsRequestData.put('L_DESC' + index, promotionDesc ? truncatePreferenceString(promotionDesc.getMarkup()) : null);
+
+						index++;
+					}
+				}
+			}
+		} else if (productLineItem instanceof order.PriceAdjustment) {
+
+			let promotion = productLineItem.getPromotion();
+			let promotionClass : String = productLineItem.getPromotion().getPromotionClass();
+
+			if (!empty(promotion) && promotionClass === campaign.Promotion.PROMOTION_CLASS_ORDER) {
+
+				let promotionDesc : String = promotion.getCalloutMsg();
+				let promotionName : String = promotion.getName();
+				let coupon : String  = dw.web.Resource.msg('paypal.coupon', 'locale', null);
+				
+				productLineItemsRequestData.put('L_NAME' +  index, productLineItem.isBasedOnCoupon() ? coupon : promotionName);
+				productLineItemsRequestData.put('L_QTY' + index, 1);
+				productLineItemsRequestData.put('L_AMT' + index, productLineItem.getBasePrice().getValueOrNull());
+				productLineItemsRequestData.put('L_DESC' + index, promotionDesc ? truncatePreferenceString(promotionDesc.getMarkup()) : null);
+
+				index++;
+			};
+		}
+	}
+	return {
+		productLineItemsRequestData : productLineItemsRequestData, 
+		index : index
+	};
+}
+
+/**
+ * Returns line items information for SetExpressCheckout and DoExpressCheckout API call
+ *
+ * @param lineItemContainer {dw.order.LineItemCtnr} order object
+ * @returns {dw.util.HashMap} line items request data (include promotion)
+ */
+function getProductLineItemsRequestData(lineItemContainer : order.LineItemCtnr) : Object {
+
+	var lineItems : util.Collection = lineItemContainer.getAllLineItems();
+	var productLineItemsRequestData : util.HashMap = new util.HashMap();
+	var index : Number = 0;
+
+	for (let i = 0, len = lineItems.size(); i < len; i++) {
+
+		let productLineItem : order.ProductLineItem = lineItems[i];
+
+		if (productLineItem instanceof order.ProductLineItem || productLineItem instanceof dw.catalog.Variant) {
+
+			let product : catalog.Product = productLineItem.getProduct();
+			let productDescription : String = '';
+
+			if (!productLineItem.isBonusProductLineItem() && !productLineItem.isOptionProductLineItem() && !empty(product)) {
+
+				if (!empty(product.getShortDescription())) {
+					productDescription = product.getShortDescription().getMarkup();
+				} else if (!empty(product.getLongDescription())) {
+					productDescription = product.getLongDescription().getMarkup();
+				} else {
+					productDescription = dw.web.Resource.msg('paypal.referencetransaction.noitemdesc', 'locale', 'No description given');
+				}
+
+			} else {
+				productDescription = productLineItem.getProductName();
+			}
+
+			productLineItemsRequestData.put('L_PAYMENTREQUEST_0_NAME' + index, productLineItem.getProductName());
+			productLineItemsRequestData.put('L_PAYMENTREQUEST_0_DESC' + index, truncatePreferenceString(productDescription)); //Field quota from PayPal 127 characters max
+			productLineItemsRequestData.put('L_PAYMENTREQUEST_0_NUMBER' + index, productLineItem.getProductID());
+			productLineItemsRequestData.put('L_PAYMENTREQUEST_0_AMT' + index, productLineItem.getBasePrice().getValueOrNull());
+			productLineItemsRequestData.put('L_PAYMENTREQUEST_0_QTY' + index, productLineItem.getQuantity().getValue());
+
+			index++;
+
+			var priceAdjustments : util.Collection = productLineItem.getPriceAdjustments();
+
+			if (priceAdjustments.size() > 0) {
+				for each (let priceAdjustment : order.PriceAdjustment in priceAdjustments) {
+
+					let promotion : campaign.Promotion = priceAdjustment.getPromotion();
+					let promotionClass : String = promotion.getPromotionClass();
+					
+					if (!empty(promotion) && promotionClass === campaign.Promotion.PROMOTION_CLASS_PRODUCT) {
+						let promotionName : String = promotion.getName() || dw.web.Resource.msg('paypal.adjustment', 'locale', null);
+						let promotionDesc : String = promotion.getCalloutMsg();
+						let coupon : String  = dw.web.Resource.msg('paypal.coupon', 'locale', null);
+
+						productLineItemsRequestData.put('L_PAYMENTREQUEST_0_NAME' +  index, promotion.isBasedOnCoupons() ? coupon : promotionName);
+						productLineItemsRequestData.put('L_PAYMENTREQUEST_0_QTY' + index, 1);
+						productLineItemsRequestData.put('L_PAYMENTREQUEST_0_AMT' + index, priceAdjustment.getBasePrice().getValueOrNull());
+						productLineItemsRequestData.put('L_PAYMENTREQUEST_0_DESC' + index, promotionDesc ? truncatePreferenceString(promotionDesc.getMarkup()) : null);
+
+						index++;
+					}
+				}
+			}
+		} else if (productLineItem instanceof order.PriceAdjustment) {
+
+			let promotion = productLineItem.getPromotion();
+			let promotionClass : String = productLineItem.getPromotion().getPromotionClass();
+
+			if (!empty(promotion) && promotionClass === campaign.Promotion.PROMOTION_CLASS_ORDER) {
+
+				let promotionDesc : String = promotion.getCalloutMsg();
+				let promotionName : String = promotion.getName();
+				let coupon : String  = dw.web.Resource.msg('paypal.coupon', 'locale', null);
+				
+				productLineItemsRequestData.put('L_PAYMENTREQUEST_0_NAME' +  index, productLineItem.isBasedOnCoupon() ? coupon : promotionName);
+				productLineItemsRequestData.put('L_PAYMENTREQUEST_0_QTY' + index, 1);
+				productLineItemsRequestData.put('L_PAYMENTREQUEST_0_AMT' + index, productLineItem.getBasePrice().getValueOrNull());
+				productLineItemsRequestData.put('L_PAYMENTREQUEST_0_DESC' + index, promotionDesc ? truncatePreferenceString(promotionDesc.getMarkup()) : null);
+
+				index++;
+			};
+		}
+	}
+	return {
+		productLineItemsRequestData : productLineItemsRequestData, 
+		index : index
+	};
+}
+
+/**
+ * Returns information for checkout page decoration
+ *
+ * @returns {dw.util.HashMap} information for checkout page decoration
+ */
+function getPageDecorationParameters() : util.HashMap {
+
+	var parametes : util.HashMap = new util.HashMap();
+
+	// API aprameter has length quota
+	parametes.put('PAGESTYLE', validateParameterLength(prefs.PP_API_PageStyle, 30));
+	parametes.put('CARTBORDERCOLOR', validateParameterLength(prefs.PP_API_CartBorderColor, 6));
+	parametes.put('LOGOIMG', validateParameterLength(prefs.PP_API_LogoImg, 127));
+	parametes.put('BRANDNAME', validateParameterLength(prefs.PP_API_BrandName, 127));
+	parametes.put('CUSTOMERSERVICENUMBER', validateParameterLength(prefs.PP_API_CustomerServicenNumber, 16));
+
+	return parametes;
+}
+
+/**
+ * Returns null if value length is too long
+ *
+ * @param param {String} parameter value
+ * @param size {Number} max length of parameter
+ * @returns {dw.util.HashMap} parameter value or null
+ */
+function validateParameterLength(param : String, size : Number) : String {
+	var result : String = null;
+
+	if (empty(param) || param == 'null') {
+		return result;
+	}
+
+	result = param.length <= size ? param : null;
+
+	return result;
+}
+
+/**
+ * Returns store name for ship to store feature
+ * 
+ * @param storeName {String}
+ * @returns {String} store name that indicate that ship to store feature is active
+ */
+function decorateByShipToStorePrefix(storeName : String) : String {
+	return 'S2S ' + storeName;
+}
+
+/**
+ * Returns truncated description
+ *
+ * @param description {String} description
+ * @returns {String} truncated description
+ */
+function truncatePreferenceString(description : String) : String {
+	var truncatedString : String = null;
+
+	if (description) {
+		var newDescription : String = description.substring(0, 110);
+		var separator : Number = newDescription.lastIndexOf('.') + 1; //locates position of the last sentence in truncated description
+		truncatedString =  newDescription.slice(0, separator);
+	} 
+
+	return truncatedString;
+}
+
+module.exports = PaypalHelper;

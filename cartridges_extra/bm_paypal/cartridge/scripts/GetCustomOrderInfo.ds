@@ -1,0 +1,29 @@
+/**
+* Get PayPalNewTransactions Custom Object with given order number
+*
+*
+*   @input OrderNo : String Order number
+*   @output TransactionIdFromOrder : String Transaction ID from order
+*   @output Order : dw.object.CustomObject PayPalNewTransactions Custom Object that matched with order number
+*
+*/
+
+var paypalHelper : Object = require('int_paypal/cartridge/scripts/modules/PaypalHelper.ds');
+var logger : dw.system.Log = paypalHelper.getLogger();
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+	try{
+		var order : dw.object.CustomObject = dw.object.CustomObjectMgr.getCustomObject('PayPalNewTransactions', args.OrderNo);
+		var transactionId : String = order.custom.transactionId;
+	} catch(error){
+		logger.error(error);
+		return PIPELET_ERROR
+	}
+
+	args.TransactionIdFromOrder = transactionId;
+	args.Order = order;
+
+	return PIPELET_NEXT;
+}

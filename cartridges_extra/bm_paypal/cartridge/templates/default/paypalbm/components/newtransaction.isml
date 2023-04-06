@@ -1,0 +1,276 @@
+<isdecorate template="paypalbm/util/pt_paypal">
+
+<isinclude template="inc/Modules">
+<isinclude template="paypalbm/util/modules">
+
+<isscript>
+	var defaultCurrency : Srting = dw.system.Site.getCurrent().getDefaultCurrency();
+	var currentPaymentAction : String = require('int_paypal/cartridge/scripts/modules/PaypalHelper.ds').getPrefs().PP_API_ReferenceTransactionPaymentAction;
+	var countries : Array = require('int_paypal/cartridge/scripts/modules/PaypalHelper.ds').getCountriesFields();
+	var invNum : String = 'pp_' + (dw.object.CustomObjectMgr.getAllCustomObjects('PayPalNewTransactions').getCount() + 1);
+</isscript>
+
+<div class="paypalbm_header">
+	<isset name="ordersUrl" value="${URLUtils.url('SiteNavigationBar-ShowMenuitemOverview', 'CurrentMenuItemId', 'orders')}" scope="page">
+	<isset name="transactionsUrl" value="${URLUtils.url('PaypalAdmin-Orders')}" scope="page">
+	<isbreadcrumb
+		name1="Ordering" url1="${ordersUrl}"
+		name2="PayPal Transactions" url2="${transactionsUrl}" />
+</div>
+
+<h2>${Resource.msgf('transaction.newtransaction.title', 'paypalbm', null)}</h2>
+
+
+<form class="paypal_action_form paypal_new_transaction_form" action="${URLUtils.url('PaypalAdmin-Action')}">
+
+	<div class="paypal_error_msg_box paypal_error_msg_box_itemamt_required"><p>${Resource.msg('forms.error.amt.required', 'paypalbm', null)}</p></div>
+	<div class="paypal_error_msg_box paypal_error_msg_box_itemamt_greaterzero"><p>${Resource.msg('forms.error.amt.greaterzero', 'paypalbm', null)}</p></div>
+	<div class="paypal_error_msg_box paypal_error_msg_box_itemamt_float"><p>${Resource.msg('forms.error.amt.float', 'paypalbm', null)}</p></div>
+
+	<div class="paypal_error_msg_box paypal_error_msg_box_shippingamt_required"><p>${Resource.msg('forms.error.shippingamt.required', 'paypalbm', null)}</p></div>
+	<div class="paypal_error_msg_box paypal_error_msg_box_shippingamt_float"><p>${Resource.msg('forms.error.shippingamt.float', 'paypalbm', null)}</p></div>
+
+	<div class="paypal_error_msg_box paypal_error_msg_box_general_required"><p>${Resource.msg('forms.error.general.required', 'paypalbm', null)}</p></div>
+
+	<input type="hidden" name="methodName" value="DoReferenceTransaction" />
+	<input type="hidden" name="amt"/> 
+	<input type="hidden" name="invnum" value="${invNum}"/>
+	<input type="hidden" name="shiptoName"/>
+	<input type="hidden" name="recurring" id="recurringInput" value="Y" />
+	<input type="hidden" name="ipaddress" value="${pdict.CurrentRequest.getHttpRemoteAddress()}">
+	<input type="hidden" name="currencycode" value="${defaultCurrency}">
+
+	<div class="js_paypal_payment_fields">
+		<h2 class="paypal_new_transaction_title">${Resource.msg('transaction.newtransaction.payment.title', 'paypalbm', null)}</h2>
+		<button class="js_paypal_toggle_button" data-hide="true" data-text-hide="Hide" data-text-show="Show">Hide</button>
+		<table class="paypalbm_transaction_detail_table infobox w e s n" id="paymentInfo">
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.baid', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input class="biginput" type="text" data-general-validation="general" name="referenceid" data-validation="required" autocomplete="off" id="referenceInput"/>
+				</td>
+			</tr>
+			<tr class="js_paypal_credit_card paypal_hide" id="acctInput" >
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.cardnum', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input class="biginput" type="text" data-general-validation="general" name="acct" data-validation="required" disabled />
+				</td>
+			</tr>
+			<tr class="paypalbm_gray js_paypal_required_toggle js_paypal_credit_card">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.expdate', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input class="biginput" type="text" data-general-validation="general" name="expdate" autocomplete="off" placeholder="MMYYYY" disabled/>
+				</td>
+			</tr>
+			<tr class="js_paypal_required_toggle js_paypal_credit_card">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.cvv', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input class="biginput" type="text" name="cvv2" data-general-validation="general" autocomplete="off" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.itemamount', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="itemamt" class="totalCount" data-validation="required,float,greaterzero" />
+					<isprint value="${defaultCurrency}"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.tax', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="taxamt" class="totalCount" value="0" data-validation="float" />
+					<isprint value="${defaultCurrency}"/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.paymentaction', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<select name='paymentAction'>
+						<option ${currentPaymentAction === "Sale" ? "selected" : ''} value='Sale'>${Resource.msg('transaction.newtransaction.paymentaction.sale', 'paypalbm', null)}</option>
+						<option ${currentPaymentAction === "Authorization" ? "selected" : ''} value='Authorization'>${Resource.msg('transaction.newtransaction.paymentaction.authorization', 'paypalbm', null)}</option>
+						<option ${currentPaymentAction === "Order" ? "selected" : ''} value='Order'>${Resource.msg('transaction.newtransaction.paymentaction.order', 'paypalbm', null)}</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.type', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<select  class="js_paypal_transaction_type">
+						<option selected value='ba'>${Resource.msg('transaction.newtransaction.type.ba', 'paypalbm', null)}</option>
+						<option value='card'>${Resource.msg('transaction.newtransaction.type.card', 'paypalbm', null)}</option>
+					</select>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.payment.totalamount', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<div id="totalAmount" data-currency="${defaultCurrency}"><b>0 <isprint value="${defaultCurrency}"/></b></div>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="js_paypal_billing_address paypal_hide">
+		<h2 class="paypal_new_transaction_title">${Resource.msg('transaction.newtransaction.billing.title', 'paypalbm', null)}</h2>
+		<button class="js_paypal_toggle_button" data-hide="true" data-text-hide="Hide" data-text-show="Show">Hide</button>
+		<table class="paypalbm_transaction_detail_table infobox w e s n">
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.firstname', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="firstname" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.lastname', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="lastname" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.email', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="email" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.address1', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="street" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.address2', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" name="street2" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.city', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="city" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.state', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="state" data-general-validation="general" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.zip', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="zip" data-general-validation="general" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.billing.country', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<select name="countrycode" disabled>
+						<isloop items="${countries}" var="country" >
+							<option value="${country.value}"><isprint value="${country.label}" encoding="off" /></option>
+						 </isloop>
+					</select>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="js_paypal_shipping">
+		<h2 class="paypal_new_transaction_title">${Resource.msg('transaction.newtransaction.shipping.title', 'paypalbm', null)}</h2>
+		<button class="js_paypal_toggle_button" data-hide="true" data-text-hide="Hide" data-text-show="Show">Hide</button>
+		<button class="js_paypal_disable_button" data-disable="false" data-text-enable="Enable" data-text-disable="Disable">Enable</button>
+		<table class="paypalbm_transaction_detail_table infobox w e s n" id="shippingInfo">
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.firstname', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" id="shippingFirstName" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.lastname', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" id="shippingLastName" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.address1', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="shiptoStreet" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.address2', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" name="shiptoStreet2" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.city', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="shiptoCity" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.phone', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" class="biginput" data-general-validation="general" name="shiptoPhoneNum" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.state', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="shiptoState" data-general-validation="general" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.zip', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="shiptoZip" data-general-validation="general" data-validation="required" disabled/>
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.country', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<select name="shiptoCountry" disabled>
+						<isloop items="${countries}" var="country" >
+							<option value="${country.value}"><isprint value="${country.label}"  encoding="off" /></option>
+						 </isloop>
+					 </select>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.shipping.amt', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="shippingamt" class="totalCount" data-validation="required,float" value="0" disabled/>
+					<isprint value="${defaultCurrency}"/>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="js_paypal_add_info">
+		<h2 class="paypal_new_transaction_title">${Resource.msg('transaction.newtransaction.additioninfo.title', 'paypalbm', null)}</h2>
+		<button class="js_paypal_toggle_button" data-hide="true" data-text-hide="Hide" data-text-show="Show">Hide</button>
+		<table class="paypalbm_transaction_detail_table infobox w e s n">
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.additioninfo.description', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<textarea name="desc" cols="50" rows="3" data-maxcount="120"></textarea>
+					<p><b class="js_textarea_count">0</b> ${Resource.msg('forms.charectersleft', 'paypalbm', null)}</p>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.newtransaction.additioninfo.custom', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<textarea name="custom" cols="50" rows="5" data-maxcount="256"></textarea>
+					<p><b class="js_textarea_count">0</b> ${Resource.msg('forms.charectersleft', 'paypalbm', null)}</p>
+				</td>
+			</tr>
+		</table>
+	</div>
+</form>
+<div class="paypalbm_footer">
+	<a class="button" href="${transactionsUrl}">&lt;&lt; ${Resource.msg('ordertransaction.backtolist', 'paypalbm', null)}</a>
+</div>
+
+</isdecorate>

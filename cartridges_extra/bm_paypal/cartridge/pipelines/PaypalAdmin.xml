@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline group="Extensions">
+  <description>Pipeline to extend Business Manager menu actions and include corresponding templates for visualization, forms and actions</description>
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Get orders list. Can be filtered by order ID or transaction ID</description>
+        </text-node>
+        <node-display x="1" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="Orders">
+    <segment>
+      <node>
+        <start-node name="Orders" secure="true"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="CurrentHttpParameterMap.transactionId.submitted" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="&quot;GetTransactionDetails&quot;" key="From_0"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+                <key-binding alias="MethodName" key="To_0"/>
+                <key-binding alias="CurrentHttpParameterMap" key="From_1"/>
+                <key-binding alias="MethodData" key="To_1"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <call-node start-name-ref="Paypal-CallApiMethod"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="Error">
+                <transition target-connector="in1" target-path="../+1"/>
+              </branch>
+              <branch basename="b3" source-connector="Ok">
+                <transition target-connector="in"/>
+                <segment>
+                  <node>
+                    <decision-node condition-key="ResponseData.data.get('ack') == &quot;Success&quot;" condition-operator="expr"/>
+                    <node-display x="0" y="2"/>
+                    <branch basename="b2" source-connector="yes">
+                      <transition target-connector="in"/>
+                      <segment>
+                        <node>
+                          <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="false"/>
+                            <key-binding alias="ResponseData.data.get('invnum')" key="From_0"/>
+                            <key-binding alias="OrderNo" key="To_0"/>
+                            <key-binding alias="null" key="From_1"/>
+                            <key-binding alias="null" key="To_1"/>
+                            <key-binding alias="null" key="From_2"/>
+                            <key-binding alias="null" key="To_2"/>
+                            <key-binding alias="null" key="From_3"/>
+                            <key-binding alias="null" key="To_3"/>
+                            <key-binding alias="null" key="From_4"/>
+                            <key-binding alias="null" key="To_4"/>
+                            <key-binding alias="null" key="From_5"/>
+                            <key-binding alias="null" key="To_5"/>
+                            <key-binding alias="null" key="From_6"/>
+                            <key-binding alias="null" key="To_6"/>
+                            <key-binding alias="null" key="From_7"/>
+                            <key-binding alias="null" key="To_7"/>
+                            <key-binding alias="null" key="From_8"/>
+                            <key-binding alias="null" key="To_8"/>
+                            <key-binding alias="null" key="From_9"/>
+                            <key-binding alias="null" key="To_9"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                        <transition target-connector="in1" target-path="../../../+3"/>
+                      </segment>
+                    </branch>
+                  </node>
+                  <transition target-connector="in1" target-path="../../+2"/>
+                </segment>
+              </branch>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="1" y="3"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="empty(CurrentHttpParameterMap.orderNo.stringValue) ? '*' : CurrentHttpParameterMap.orderNo.stringValue" key="From_0"/>
+          <key-binding alias="OrderNo" key="To_0"/>
+          <key-binding alias="CurrentHttpParameterMap.transactionId.submitted ? '0' : OrderNo" key="From_1"/>
+          <key-binding alias="OrderNo" key="To_1"/>
+          <key-binding alias="CurrentHttpParameterMap.transactionId.stringValue == '' ? '*' : OrderNo" key="From_2"/>
+          <key-binding alias="OrderNo" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="2"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="-1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="GetOrders.ds"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="OrderNo" key="OrderNo"/>
+          <key-binding alias="Orders" key="Orders"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <interaction-node transaction-required="false">
+                <template buffered="true" dynamic="false" name="paypalbm/components/servererror"/>
+              </interaction-node>
+              <node-display x="1" y="3"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="!empty(CurrentHttpParameterMap.pagesize.intValue) ? CurrentHttpParameterMap.pagesize.intValue : 10" key="From_0"/>
+          <key-binding alias="PageSize" key="To_0"/>
+          <key-binding alias="CurrentHttpParameterMap.page.intValue ? CurrentHttpParameterMap.page.intValue : 1" key="From_1"/>
+          <key-binding alias="CurrentPage" key="To_1"/>
+          <key-binding alias="PageSize == 0 ? OrdersCount : PageSize" key="From_2"/>
+          <key-binding alias="PageSize" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Paging" pipelet-set-identifier="bc_api">
+          <config-property key="DefaultPageSize" value="10"/>
+          <key-binding alias="Orders" key="Objects"/>
+          <key-binding alias="PageSize" key="PageSize"/>
+          <key-binding alias="PageSize * (CurrentPage - 1)" key="Start"/>
+          <key-binding alias="PagingModel" key="PagingModel"/>
+          <key-binding alias="OrdersCount" key="ObjectsCount"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="paypalbm/orderlist"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_3">
+    <segment>
+      <node>
+        <text-node>
+          <description>Get transaction details</description>
+        </text-node>
+        <node-display x="4" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="OrderTransaction">
+    <segment>
+      <node>
+        <start-node name="OrderTransaction" secure="true"/>
+        <node-display x="4" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+          <bend-point relative-to="source" x="-1" y="1"/>
+          <bend-point relative-to="target" x="-1" y="0"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="CurrentHttpParameterMap.get('orderNo') &amp;&amp; !empty(CurrentHttpParameterMap.orderNo.value)" condition-operator="expr"/>
+        <node-display orientation="horizontal" x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <decision-node condition-key="CurrentHttpParameterMap.get('isCustomOrder') &amp;&amp; !empty(CurrentHttpParameterMap.isCustomOrder.stringValue)" condition-operator="expr"/>
+              <node-display x="1" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="target" x="0" y="-1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="false"/>
+                      <config-property key="OnError" value="PIPELET_ERROR"/>
+                      <config-property key="ScriptFile" value="GetCustomOrderInfo.ds"/>
+                      <key-binding alias="ScriptLog" key="ScriptLog"/>
+                      <key-binding alias="CurrentHttpParameterMap.orderNo.stringValue" key="OrderNo"/>
+                      <key-binding alias="Order" key="Order"/>
+                      <key-binding alias="TransactionIdFromOrder" key="TransactionIdFromOrder"/>
+                    </pipelet-node>
+                    <node-display x="0" y="3"/>
+                    <branch basename="b2" source-connector="error">
+                      <transition target-connector="in1" target-path="../b4.2"/>
+                    </branch>
+                  </node>
+                  <transition target-connector="in1" target-path="../../+1">
+                    <transition-display>
+                      <bend-point relative-to="source" x="0" y="2"/>
+                    </transition-display>
+                  </transition>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="GetOrder" pipelet-set-identifier="bc_api">
+                <key-binding alias="CurrentHttpParameterMap.orderNo.stringValue" key="OrderNo"/>
+                <key-binding alias="Order" key="Order"/>
+              </pipelet-node>
+              <node-display x="1" y="1"/>
+              <branch basename="b3" source-connector="error">
+                <transition target-connector="in1" target-path="./b4.1">
+                  <transition-display>
+                    <bend-point relative-to="source" x="2" y="0"/>
+                  </transition-display>
+                </transition>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <config-property key="OnError" value="PIPELET_ERROR"/>
+                <config-property key="ScriptFile" value="int_paypal:util/GetExpressCheckoutPaymentInstrument.ds"/>
+                <key-binding alias="ScriptLog" key="ScriptLog"/>
+                <key-binding alias="Order" key="Order"/>
+                <key-binding alias="PaymentInstrument" key="PaypalExpressPaymentInstrument"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b4" source-connector="error">
+                <transition target-connector="in1"/>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="1" y="0"/>
+                  </node>
+                  <transition target-connector="in1" target-path="./+1"/>
+                </segment>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../../+1/b2.1"/>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in1" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="4"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="5"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="TransactionIdFromOrder ? TransactionIdFromOrder : PaymentInstrument.getPaymentTransaction().getTransactionID()" key="From_0"/>
+          <key-binding alias="TransactionIdFromOrder" key="To_0"/>
+          <key-binding alias="empty(CurrentHttpParameterMap.transactionId.stringValue) ? TransactionIdFromOrder : CurrentHttpParameterMap.transactionId.stringValue" key="From_1"/>
+          <key-binding alias="TransactionID" key="To_1"/>
+          <key-binding alias="empty(CurrentHttpParameterMap.isCustomOrder.stringValue) ? false : true" key="From_2"/>
+          <key-binding alias="isCustomOrder" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <call-node start-name-ref="Paypal-GetTransactionDetails"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="Error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="3" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <interaction-node transaction-required="false">
+                <template buffered="true" dynamic="false" name="paypalbm/components/servererror"/>
+              </interaction-node>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+        <branch basename="b3" source-connector="Ok">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <interaction-node transaction-required="false">
+                <template buffered="true" dynamic="false" name="paypalbm/ordertransaction"/>
+              </interaction-node>
+              <node-display x="0" y="2"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_5">
+    <segment>
+      <node>
+        <text-node>
+          <description>Do some action, like DoAuthorize, DoCapture, DoRefund and etc</description>
+        </text-node>
+        <node-display x="8" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="Action">
+    <segment>
+      <node>
+        <start-node name="Action" secure="true"/>
+        <node-display x="8" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="!CurrentHttpParameterMap.helperAction.submitted" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="CurrentHttpParameterMap.methodName.stringValue" key="From_0"/>
+                <key-binding alias="MethodData.get('methodName').getValue() != &quot;DoReferenceTransaction&quot; &amp;&amp; MethodData.get('methodName').getValue() != 'DoDirectPayment'" key="From_4"/>
+                <key-binding alias="IsSaveToCustomOrder" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+                <key-binding alias="MethodName" key="To_0"/>
+                <key-binding alias="CurrentHttpParameterMap" key="From_1"/>
+                <key-binding alias="CurrentHttpParameterMap.orderNo.stringValue" key="From_2"/>
+                <key-binding alias="MethodData" key="To_1"/>
+                <key-binding alias="OrderNo" key="To_2"/>
+                <key-binding alias="CurrentHttpParameterMap.isCustomOrder.booleanValue" key="From_3"/>
+                <key-binding alias="IsCustomOrder" key="To_3"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <call-node start-name-ref="Paypal-CallApiMethod"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="Error">
+                <transition target-connector="in1" target-path="../+1"/>
+              </branch>
+              <branch basename="b3" source-connector="Ok">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="target" x="0" y="-1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <decision-node condition-key="ResponseData.data.get('ack') == &quot;Success&quot; &amp;&amp; IsSaveToCustomOrder" condition-operator="expr"/>
+                    <node-display x="0" y="2"/>
+                    <branch basename="b2" source-connector="yes">
+                      <transition target-connector="in"/>
+                      <segment>
+                        <node>
+                          <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                            <config-property key="ScriptFile" value="int_paypal:data/UpdateOrderTransaction.ds"/>
+                            <config-property key="Transactional" value="true"/>
+                            <config-property key="OnError" value="PIPELET_ERROR"/>
+                            <key-binding alias="ResponseData.data.get('transactionid') || ResponseData.data.get('authorizationid') || ResponseData.data.get('refundtransactionid')" key="TransactionID"/>
+                            <key-binding alias="OrderNo" key="OrderNo"/>
+                            <key-binding alias="ScriptLog" key="ScriptLog"/>
+                            <key-binding alias="IsCustomOrder" key="IsCustomOrder"/>
+                            <key-binding alias="MethodName" key="MethodName"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                          <branch basename="b2" source-connector="error">
+                            <transition target-connector="in1" target-path="../../../+1"/>
+                          </branch>
+                        </node>
+                        <transition target-connector="in1" target-path="../+1"/>
+                      </segment>
+                    </branch>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="2" y="0"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="false"/>
+                      <key-binding alias="ResponseData.data.transactionid" key="From_0"/>
+                      <key-binding alias="TransactionID" key="To_0"/>
+                      <key-binding alias="null" key="From_1"/>
+                      <key-binding alias="null" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="1" y="2"/>
+                  </node>
+                  <simple-transition/>
+                  <node>
+                    <call-node start-name-ref="Paypal-GetTransactionDetails"/>
+                    <node-display x="0" y="1"/>
+                    <branch basename="b3" source-connector="Error">
+                      <transition target-connector="in2" target-path="../../+2"/>
+                    </branch>
+                  </node>
+                  <simple-transition/>
+                  <node>
+                    <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="true"/>
+                      <config-property key="OnError" value="PIPELET_ERROR"/>
+                      <config-property key="ScriptFile" value="CreateNewTransactionCustomObject.ds"/>
+                      <key-binding alias="ScriptLog" key="ScriptLog"/>
+                      <key-binding alias="GetTransactionDetalisResponseContainer.data" key="ResponseData"/>
+                      <key-binding alias="RequestData.data.INVNUM" key="InvNum"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                    <branch basename="b4" source-connector="error">
+                      <transition target-connector="in2" target-path="../../+3"/>
+                    </branch>
+                  </node>
+                  <transition target-connector="in1" target-path="./+1">
+                    <transition-display>
+                      <bend-point relative-to="source" x="0" y="1"/>
+                      <bend-point relative-to="target" x="0" y="1"/>
+                    </transition-display>
+                  </transition>
+                </segment>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="-1" y="0"/>
+                  </node>
+                  <simple-transition/>
+                  <node>
+                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="false"/>
+                      <key-binding alias="&quot;Success&quot;" key="From_0"/>
+                      <key-binding alias="ResponseResult" key="To_0"/>
+                      <key-binding alias="null" key="From_1"/>
+                      <key-binding alias="null" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="0" y="1"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <interaction-node transaction-required="false">
+                      <template buffered="true" dynamic="false" name="paypalbm/util/pt_json"/>
+                    </interaction-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                </segment>
+              </branch>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="target" x="-1" y="0"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="CurrentHttpParameterMap.helperAction.stringValue == 'getCaptureAmount'" condition-operator="expr"/>
+        <node-display orientation="horizontal" x="2" y="0"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <jump-node start-name-ref="PaypalAdmin-HelperGetCaptureAmount"/>
+              <node-display orientation="horizontal" x="1" y="0"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="5"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="2"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="&quot;Error&quot;" key="From_0"/>
+          <key-binding alias="ResponseResult" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="paypalbm/util/pt_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="CreateNewTransaction">
+    <segment>
+      <node>
+        <start-node name="CreateNewTransaction" secure="true"/>
+        <node-display x="13" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="paypalbm/components/newtransaction"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_8">
+    <segment>
+      <node>
+        <text-node>
+          <description>Returns max ammount is allowed for multiple capture operation</description>
+        </text-node>
+        <node-display x="1" y="14"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="HelperGetCaptureAmount">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="HelperGetCaptureAmount" secure="false"/>
+        <node-display x="1" y="15"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="!empty(CurrentHttpParameterMap.orderNo.value)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <decision-node condition-key="CurrentHttpParameterMap.isCustomOrder.booleanValue" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="source" x="0" y="1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="false"/>
+                      <config-property key="OnError" value="PIPELET_ERROR"/>
+                      <config-property key="ScriptFile" value="GetCustomOrderInfo.ds"/>
+                      <key-binding alias="ScriptLog" key="ScriptLog"/>
+                      <key-binding alias="CurrentHttpParameterMap.orderNo.stringValue" key="OrderNo"/>
+                      <key-binding alias="Order" key="Order"/>
+                      <key-binding alias="TransactionIdFromOrder" key="TransactionIdFromOrder"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                    <branch basename="b2" source-connector="error">
+                      <transition target-connector="in1" target-path="../../+1"/>
+                    </branch>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="GetOrder" pipelet-set-identifier="bc_api">
+                <key-binding alias="CurrentHttpParameterMap.orderNo.stringValue" key="OrderNo"/>
+                <key-binding alias="Order" key="Order"/>
+              </pipelet-node>
+              <node-display x="1" y="2"/>
+              <branch basename="b3" source-connector="error">
+                <transition target-connector="in1" target-path="../+2"/>
+              </branch>
+            </node>
+            <transition target-connector="in1" target-path="./+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="-1" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <interaction-node transaction-required="false">
+                <template buffered="true" dynamic="false" name="paypalbm/components/helperactiongetcaptureamount"/>
+              </interaction-node>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="4" y="0"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="2" y="2"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="&quot;Error&quot;" key="From_0"/>
+          <key-binding alias="ResponseResult" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="paypalbm/util/pt_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

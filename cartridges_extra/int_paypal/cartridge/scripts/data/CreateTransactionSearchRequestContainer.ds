@@ -1,0 +1,35 @@
+/**
+*	Creates data for TransactionSearch API call
+*
+*	@input STARTDATE : String The earliest transaction date at which to start the search.
+*	@input ENDDATE : String The timestamp of the latest point in time in which you want to search.
+*	@input RECEIVER : String Receiver�s email address
+*	@input RECEIPTID : String The receipt ID of the payment
+*	@input TRANSACTIONID : String If you search by transaction ID, related transactions (such as captures and refunds) are matched as well.
+*	@input INVNUM : String The invoice number that was supplied with the transaction. Maximum length: 127 characters
+*	@input AMT : String The transaction amount
+*	@input CURRENCYCODE : String The currency in which the transaction took place.Only required if you supply the transaction amount
+*	@input TRANSACTIONCLASS : String The transaction class
+*	@input STATUS : String The transaction status
+*	@input SALUTATION : String The buyer�s salutation
+*	@input FIRSTNAME : String The buyer�s first name
+*	@input MIDDLENAME : String The buyer�s middle name
+*	@input LASTNAME : String The buyer�s last name
+*	@input SUFFIX : String The buyer�s suffix
+*
+*	@output TransactionSearchRequestContainer : Object Data prepaired for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	args.TransactionSearchRequestContainer = {
+		method : prefs.api.TransactionSearch.method,
+		data : paypalHelper.createTransactionSearchRequestData(args)
+	};
+
+	return PIPELET_NEXT;
+}
+

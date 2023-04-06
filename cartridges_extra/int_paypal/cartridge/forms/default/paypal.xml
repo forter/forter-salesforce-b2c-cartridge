@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+
+	<field formid="saveBillingAgreement" label="paypal.billing.agreement.checkbox" type="boolean" mandatory="false" default-value="true" />
+	<field formid="useCustomerBillingAgreement" label="paypal.billing.agreement.use.checkbox" type="boolean" mandatory="false" default-value="true" />
+	<field formid="expressCheckoutSetForBillingAgreement" type="boolean" mandatory="false" default-value="false" />
+	<field formid="useAnotherAccount" label="paypal.billing.agreement.useanotheraccount.checkbox" type="boolean" mandatory="false" default-value="false" />
+	
+</form>

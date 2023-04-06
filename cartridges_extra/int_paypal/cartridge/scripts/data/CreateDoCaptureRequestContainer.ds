@@ -1,0 +1,34 @@
+/**
+*	Creates data for DoCapture API call
+*
+*	@input AUTHORIZATIONID : String The PayPal order ID of the order ID that you wish to authorize against.
+*	@input AMT : String Amount to authorize
+*	@input CURRENCYCODE : String Transaction currency
+*	@input COMPLETETYPE : String Indicates whether this will be the last capture for the authorization or order.
+*	@input INVNUM : String Unique invoice number of tracking number for this purchase
+*	@input NOTE : String Informational note that is displayed to the buyer
+*
+*	@output DoCaptureRequestContainer : Object Data prepaired for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : dw.util.HashMap = new dw.util.HashMap();
+
+	data.put('AUTHORIZATIONID', args.AUTHORIZATIONID);
+	data.put('AMT', args.AMT);
+	data.put('CURRENCYCODE', args.CURRENCYCODE);
+	data.put('COMPLETETYPE', args.COMPLETETYPE);
+	data.put('INVNUM', args.INVNUM);
+	data.put('NOTE', args.NOTE);
+
+	args.DoCaptureRequestContainer = {
+		method : prefs.api.DoCapture.method,
+		data : data
+	};
+
+	return PIPELET_NEXT;
+}

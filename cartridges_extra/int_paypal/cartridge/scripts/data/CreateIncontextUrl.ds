@@ -1,0 +1,18 @@
+/**
+*	Create url for incontext checkout
+*
+*   @input Token : String Token from SetExpressCheckoutCall
+*
+*   @output PaypalRedirectUrl : String Redirect URL result
+*
+*/
+
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var url : String = prefs.incontextUrl + '?token=' + args.Token;
+	args.PaypalRedirectUrl = url;
+
+	return PIPELET_NEXT;
+}

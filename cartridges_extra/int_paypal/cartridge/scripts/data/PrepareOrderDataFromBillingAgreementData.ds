@@ -1,0 +1,73 @@
+/**
+*	Prepare Order data by Billing Agreement data
+*
+*	@input Data : Object Billing Agreement data
+*	@input Order : dw.order.LineItemCtnr Order object
+*	@input PaypalCheckoutFromCart : Boolean value, which indicates if transaction was made from cart
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : Object = args.Data;
+	var order : dw.order.LineItemCtnr = args.Order;
+	var customer : dw.customer.Customer = order.getCustomer();
+	var paypalCheckoutFromCart : Boolean = args.PaypalCheckoutFromCart;
+	var customerBillingAgreement : Object = paypalHelper.getCustomerBillingAgreement(customer);
+
+	order.setCustomerEmail(customer.getProfile().getEmail());
+	
+	if (!prefs.PP_API_ShippingAddressOverride || paypalCheckoutFromCart) {
+		var orderShippingAddress : dw.order.OrderAddress = order.getDefaultShipment().getShippingAddress();
+		var defaultAddress : Object = customerBillingAgreement.getDefaultShippingAddress();
+		if(empty(orderShippingAddress.getAddress1()) && order.getDefaultShipment().productLineItems.length > 0) {
+			orderShippingAddress.setFirstName(defaultAddress.firstName);
+			orderShippingAddress.setLastName(defaultAddress.lastName);
+			orderShippingAddress.setAddress1(defaultAddress.address1);
+			orderShippingAddress.setAddress2(defaultAddress.address2);
+			orderShippingAddress.setCity(defaultAddress.city);
+			orderShippingAddress.setPostalCode(defaultAddress.postalCode);
+			orderShippingAddress.setStateCode(defaultAddress.stateCode);
+			orderShippingAddress.setCountryCode(defaultAddress.countryCode.value);
+			orderShippingAddress.setPhone(defaultAddress.phone);
+		}
+	}
+
+	if (prefs.PP_API_RequestBillingAddressFromPayPal && paypalCheckoutFromCart) {
+		updateBillingAddress(data, order.getBillingAddress());
+	}
+
+	return PIPELET_NEXT;
+}
+
+/**
+ * updateBillingAddress()
+ *
+ * @param data {dw.util.HashMap}
+ * @param address {dw.order.OrderAddress} billing address
+ * @returns {dw.order.OrderAddress} updated billing address
+ */
+function updateBillingAddress(data : dw.util.HashMap, address : dw.order.OrderAddress) : dw.order.OrderAddress {
+
+	var isCountryCodesUpperCase : Boolean = paypalHelper.isCountryCodesUpperCase();
+	var countryCode : String = data.get('countrycode') || '';
+	var personNameObject : Object = paypalHelper.createPersonNameObject(data.billingname);
+	address.setFirstName(personNameObject.firstName);
+	if (!empty(personNameObject.secondName)) {
+		address.setSecondName(personNameObject.secondName);
+	}
+	if (!empty(personNameObject.lastName)) {
+		address.setLastName(personNameObject.lastName);
+	}
+
+	address.setCountryCode(isCountryCodesUpperCase ? countryCode.toUpperCase() : countryCode.toLowerCase());
+	address.setStateCode(data.get('state'));
+	address.setCity(data.get('city'));
+	address.setPostalCode(data.get('zip'));
+	address.setAddress1(data.get('street'));
+
+	return address;
+}

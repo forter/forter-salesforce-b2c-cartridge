@@ -1,0 +1,26 @@
+<iscomment>TODO DELETE FILE</iscomment>
+<h1>Customer BA</h1>
+<h2>IP: ${request.getHttpRemoteAddress()}</h2>
+<h2>Is customer authorized: ${customer.authenticated}</h2>
+
+<ul>
+<isloop items="${pdict.CustomerBillingAgreement.items}" var="item">
+	<li><b>Email:</b> ${item.email}; <b>ID:</b> ${item.id}</li>
+</isloop>
+</ul>
+
+<h2>Default Shipping Address</h2>
+<isscript>
+	var address = pdict.CustomerBillingAgreement.getDefaultShippingAddress();
+</isscript>
+<isif condition="${address}">
+	<p>Country:${address.getCountryCode().getValue()}</p>
+	<p>City:${address.getCity()}</p>
+	<p>Street1:${address.getAddress1()}</p>
+<iselse>
+	<p>None address</p>
+</isif>
+
+<br>
+<pre>${JSON.stringify(pdict.CustomerBillingAgreement)}</pre>
+

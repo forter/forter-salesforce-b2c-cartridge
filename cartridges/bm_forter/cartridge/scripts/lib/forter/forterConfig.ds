@@ -1,0 +1,63 @@
+var ForterLogger = require('*/cartridge/scripts/lib/forter/forterLogger');
+
+/**
+ * ForterConfig object contains all configuration data,
+ * which are used to call and use the Forter service.
+ * This data is retrieved from custom site preferences.
+ *
+ * To include this script use:
+ * var config = require('~/cartridge/scripts/lib/forter/forterConfig.ds').ForterConfig;
+ */
+function ForterConfig() {
+    this.forterLogger = new ForterLogger("ForterConfig.ds");
+    
+    var forterSitePreferences = dw.system.Site.getCurrent().getPreferences().getCustom();
+
+    this.forterEnabled              = forterSitePreferences.forterEnabled;
+    this.forterSiteID               = forterSitePreferences.forterSiteID;
+    this.forterSecretKey            = forterSitePreferences.forterSecretKey;
+    this.forterShowDeclinedPage     = forterSitePreferences.forterShowDeclinedPage;
+    this.forterCustomDeclineMessage = forterSitePreferences.forterCustomDeclineMessage;
+    this.forterAutoInvoiceOnApprove = forterSitePreferences.forterAutoInvoiceOnApprove;
+    this.forterCancelOrderOnDecline = forterSitePreferences.forterCancelOrderOnDecline;
+    this.forterWeeksAmount          = forterSitePreferences.forterWeeksAmount;
+
+    this.STATUS_APPROVED     = "APPROVED";
+    this.STATUS_DECLINED     = "DECLINED";
+    this.STATUS_NOT_REVIEWED = "NOT_REVIEWED";
+    this.STATUS_FAILED       = "FAILED";
+    this.STATUS_NOT_SENT     = "NOT_SENT";
+    
+    this.CUSTOMER_LOGIN          = "LOGIN";
+    this.CUSTOMER_LOGOUT         = "LOGOUT";
+    this.CUSTOMER_CREATE         = "REGISTRATION";
+    this.CUSTOMER_PROFILE_UPDATE = "UPDATE";
+    this.CUSTOMER_ADDRESS_UPDATE = "ADDRESS_UPDATE";
+    this.CUSTOMER_PAYMENT_UPDATE = "PAYMENT_METHOD_UPDATE";
+
+    this.PHONE_TYPE_PRIMARY   = "Primary";
+    this.PHONE_TYPE_SECONDARY = "Secondary";
+
+    this.PHONE_DESC_HOME   = "Home";
+    this.PHONE_DESC_WORK   = "Work";
+    this.PHONE_DESC_MOBILE = "Mobile";
+}
+
+ForterConfig.prototype.saveSiteCredentials = function() {
+    var site = dw.system.Site.getCurrent();
+    site.setCustomPreferenceValue("forterSiteID", this.forterSiteID);
+    site.setCustomPreferenceValue("forterSecretKey", this.forterSecretKey);
+}
+
+ForterConfig.prototype.saveSitePreferences = function() {
+    var site = dw.system.Site.getCurrent();
+    site.setCustomPreferenceValue("forterEnabled", this.forterEnabled);
+    site.setCustomPreferenceValue("forterShowDeclinedPage", this.forterShowDeclinedPage);
+    site.setCustomPreferenceValue("forterCustomDeclineMessage", this.forterCustomDeclineMessage);
+    site.setCustomPreferenceValue("forterAutoInvoiceOnApprove", this.forterAutoInvoiceOnApprove);
+    site.setCustomPreferenceValue("forterCancelOrderOnDecline", this.forterCancelOrderOnDecline);
+    site.setCustomPreferenceValue("forterWeeksAmount", this.forterWeeksAmount);
+}
+
+Object.freeze(ForterConfig);
+module.exports.ForterConfig = new ForterConfig();

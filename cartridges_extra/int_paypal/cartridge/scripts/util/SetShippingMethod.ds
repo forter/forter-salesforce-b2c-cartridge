@@ -1,0 +1,29 @@
+/**
+* This script set shipping method and calculates cart
+*
+* @input Basket : dw.order.Basket The basket.
+* 
+*/
+importPackage( dw.order );
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.web );
+
+
+function execute( pdict : PipelineDictionary ) : Number {
+	var basket : Basket = pdict.Basket;
+	var defaultShipment : dw.order.Shipment = basket.getDefaultShipment();
+	var defaultShippngMethod : dw.order.ShippingMethod = dw.order.ShippingMgr.getDefaultShippingMethod();
+
+	try {
+		defaultShipment.setShippingMethod(defaultShippngMethod);
+	} catch (error) {
+		trace(error);
+		return PIPELET_ERROR;
+	}
+
+	//Calculate cart after shipping method setup
+	dw.system.HookMgr.callHook( "dw.ocapi.shop.basket.calculate", "calculate", basket );
+
+	return PIPELET_NEXT;
+}

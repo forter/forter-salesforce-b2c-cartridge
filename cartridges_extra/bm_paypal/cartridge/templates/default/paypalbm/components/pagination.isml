@@ -1,0 +1,155 @@
+<isif condition="${!pdict.pagingmodel.empty}">
+<isscript>
+	var pagination = pdict.pagingmodel,
+		pageURL = pdict.pageurl,
+		current = pagination.start,
+		totalCount = pagination.count,
+		pageSize = pagination.pageSize,
+		currentPage = pagination.currentPage,
+		maxPage = pagination.maxPage;
+
+	showingStart = current + 1;
+	showingEnd = current + pageSize;
+
+	if (showingEnd > totalCount) {
+		showingEnd = totalCount;
+	}
+
+	lr = 2;
+	if ( maxPage <= 2*lr ) {
+		rangeBegin = 1;
+		rangeEnd = maxPage-1;
+	} else {
+		rangeBegin = Math.max( Math.min( currentPage - lr, maxPage - 2*lr ), 1 );
+		rangeEnd = Math.min( rangeBegin + 2*lr, maxPage - 1 );
+	}
+
+	var parameters = [];
+	for(var property in pdict.CurrentHttpParameterMap) {
+		if(property == 'page') {
+			continue;
+		}
+		parameters.push({
+			key: property,
+			value: pdict.CurrentHttpParameterMap[property]
+		});
+	}
+
+</isscript>
+
+<form class="paypalbm_pagination" method="post" action="${pageURL}">
+	<table class="pagecursor">
+		<tr>
+			<td nowrap="nowrap" width="40%" align="left" class="pagecursortxt top">
+				
+				${Resource.msg('pagination.showing', 'paypalbm', null)}
+				<span class="pagecursoritem bold">
+					<isprint value="${StringUtils.formatInteger(showingStart)}"/>
+				</span>
+				-
+				<span class="pagecursoritem bold">
+					<isprint value="${StringUtils.formatInteger(showingEnd)}"/>
+				</span>
+				${Resource.msg('pagination.of', 'paypalbm', null)}
+				<span class="pagecursoritem bold">
+					<isprint value="${StringUtils.formatInteger(totalCount)}"/>
+				</span>
+				${Resource.msg('pagination.items', 'paypalbm', null)}.
+			</td>
+			
+			<td nowrap="nowrap" class="pagecursortxt top">
+				&nbsp;
+				<isif condition="${totalCount > 10}">
+				
+					${Resource.msg('pagination.show', 'paypalbm', null)}
+					
+					<isif condition="${totalCount > 10 && pageSize != 10}">
+						<span class="pagecursortxt">
+							<span class="pagecursortxt"><button class="pagecursorbtn perm_not_disabled" name="pagesize" value="10">10</button></span>
+						</span>
+					</isif>
+					
+					<isif condition="${totalCount > 50 && pageSize != 50}">
+						<span class="pagecursortxt">
+							<span class="pagecursortxt"><button class="pagecursorbtn perm_not_disabled" name="pagesize" value="50">50</button></span>
+						</span>
+					</isif>
+	
+					<isif condition="${totalCount > 100 && pageSize != 100}">
+						<span class="pagecursortxt"><button class="pagecursorbtn perm_not_disabled" name="pagesize" value="100">100</button></span>
+					</isif>
+	
+					<isif condition="${totalCount > 1000 && pageSize != 1000}">
+						<span class="pagecursortxt"><button class="pagecursorbtn perm_not_disabled" name="pagesize" value="1000">1000</button></span>
+					</isif>
+					
+					<isif condition="${pdict.CurrentHttpParameterMap.pagesize.intValue != 0}">
+						<span class="pagecursortxt"><button class="pagecursorbtn perm_not_disabled" name="pagesize" value="0">${Resource.msg('pagination.button.all', 'paypalbm', null)}</button></span>
+					</isif>
+					
+					${Resource.msg('pagination.items', 'paypalbm', null)}
+				</isif>
+			</td>
+			
+			<isif condition="${(currentPage > 0) && (maxPage > 4)}">
+				<td class="pagecursortxt" width="1">&lt;&lt;</td>
+				<td class="pagecursortxt" width="1">
+					<button class="pagecursorbtn perm_not_disabled" name="page" value="<isprint value="${currentPage}" style="INTEGER"/>">${Resource.msg('pagination.button.previous', 'paypalbm', null)}</button>
+				</td>			
+			</isif>
+				
+			<isif condition="${currentPage != 0}">
+				<td width="1" class="pagecursortxt">
+					<button class="pagecursorbtn perm_not_disabled" name="page" value="0">1</button>
+				</td>
+			<iselse>
+				<td width="1" class="pagecursoritem top"><b>[1]</b></td>
+			</isif>
+			<isif condition="${rangeBegin != 1}">
+				<td width="1">...</td>
+			</isif>
+
+			<isif condition="${maxPage >= 1}">
+				<isloop begin="${rangeBegin}" end="${rangeEnd}" status="i">
+					<isif condition="${i.index != currentPage}">
+						<td width="1" class="pagecursortxt">
+							<button class="pagecursorbtn perm_not_disabled" name="page" value="<isprint value="${i.index + 1}" style="INTEGER"/>"><isprint value="${i.index + 1}" style="INTEGER"/></button>
+						</td>
+					<iselse>
+						<td width="1" class="pagecursoritem top"><b>[<isprint value="${i.index + 1}" style="INTEGER"/>]</b></td>
+					</isif>
+				</isloop>
+			</isif>
+			
+			
+			<isif condition="${(rangeEnd + 1) != maxPage}">
+				<td width="1">...</td>
+			</isif>
+			
+			<isif condition="${maxPage != 0}">
+				<isif condition="${maxPage != currentPage}">
+					<td width="1" class="pagecursortxt">
+						<button class="pagecursorbtn perm_not_disabled" name="page" value="<isprint value="${maxPage + 1}" style="INTEGER"/>"><isprint value="${maxPage + 1}" style="INTEGER"/></button>
+					</td>
+				<iselse>
+					<td width="1" class="pagecursoritem top"><b>[<isprint value="${maxPage + 1}" style="INTEGER"/>]</b></td>
+				</isif>
+			</isif>
+
+			<isif condition="${(current < totalCount - pageSize) && (maxPage > 4)}">
+				<td width="1" class="pagecursortxt">
+					<button class="pagecursorbtn perm_not_disabled" name="page" value="<isprint value="${currentPage+2}" style="INTEGER"/>">${Resource.msg('pagination.button.next', 'paypalbm', null)}</button>
+				</td>
+				<td width="1" class="pagecursortxt">&gt;&gt;</td>
+			</isif>
+						
+		</tr>
+	</table>
+	
+	<isloop items="${parameters}" var="parameter">
+		<input type="hidden" value="${parameter.value}" name="${parameter.key}"/>
+	</isloop>
+	
+</form>
+
+</isif>

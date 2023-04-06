@@ -1,0 +1,16 @@
+/**
+*	Get Customer Billing Agreement Object for work with customer Billing Agreement Data which is related with customer
+*
+*	@input Customer : dw.customer.Customer
+*	@output CustomerBillingAgreement : Object
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	args.CustomerBillingAgreement = paypalHelper.getCustomerBillingAgreement(args.Customer);
+
+	return PIPELET_NEXT;
+}

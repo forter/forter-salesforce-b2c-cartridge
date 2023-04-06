@@ -1,0 +1,70 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isif condition="${!pdict.pagingmodel.empty}">
+<isset name="pagingHelper" value="${require('~/cartridge/scripts/util/pagingHelper')}" scope="page"/>
+<isset name="pagingElements" value="${pagingHelper.getPagingElements(pdict.pagingmodel, pdict.pageurl, pdict.params)}" scope="page"/>
+<isset name="current" value="${pagingElements.current}" scope="page"/>
+<isset name="totalCount" value="${pagingElements.totalCount}" scope="page"/>
+<isset name="pageSize" value="${pagingElements.pageSize}" scope="page"/>
+<isset name="pageURL" value="${pagingElements.pageURL}" scope="page"/>
+<isset name="currentPage" value="${pagingElements.currentPage}" scope="page"/>
+<isset name="maxPage" value="${pagingElements.maxPage}" scope="page"/>
+<isset name="showingStart" value="${pagingElements.showingStart}" scope="page"/>
+<isset name="showingEnd" value="${pagingElements.showingEnd}" scope="page"/>
+<isset name="rangeBegin" value="${pagingElements.rangeBegin}" scope="page"/>
+<isset name="rangeEnd" value="${pagingElements.rangeEnd}" scope="page"/>
+<isset name="parameters" value="${pagingElements.parameters}" scope="page"/>
+
+    <form method="post" action="${pageURL}">
+        <isloop items="${parameters}" var="param">
+            <input type="hidden" value="${param.value}" name="${param.key}" />
+        </isloop>
+
+        <div class="pagecursor">
+            <div class="pagecursortxt top">
+                <isif condition="${!empty(pdict.ProductSearchResult) && pdict.ProductSearchResult.count > 0}"> <span class="toggle-grid"><i class="fa fa-th fa-lg" data-option="column"></i><i class="fa fa-th-list fa-lg" data-option="wide"></i></span></isif>
+                ${dw.web.Resource.msg('forter_bm.configuration.pagingbar.showing', 'forter_bm', null)}
+                <isif condition="${!empty(pdict.OrderPagingModel) || !dw.system.Site.getCurrent().getCustomPreferenceValue('enableInfiniteScroll')}">
+                    <span class="pagecursoritem bold"><isprint value="${StringUtils.formatInteger(showingStart)}"/></span> - <span class="pagecursoritem bold"><isprint value="${StringUtils.formatInteger(showingEnd)}"/></span> ${dw.web.Resource.msg('forter_bm.configuration.pagingbar.paginginformation.of', 'forter_bm', null)}
+                </isif>
+                <span class="pagecursoritem bold"><isprint value="${pdict.pagingmodel.count}"/></span> ${dw.web.Resource.msg('forter_bm.configuration.pagingbar.search.results', 'forter_bm', null)}
+            </div>
+            <iscomment>Avoid empty paging div or empty div with empty ul</iscomment>
+            <div class="pagecursorpages top">
+                <isif condition="${!empty(pdict.OrderPagingModel) && pdict.pagingmodel.pageCount > 1}">
+                    <isif condition="${(currentPage > 0) && (maxPage > 1)}">
+                        <div class="first-last">
+                            <input name="pageIndex0" type="submit" class="pagecursorbtn perm_not_disabled page" title="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.first.label', 'forter_bm', null)}" value="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.first', 'forter_bm', null)}"/>
+                        </div>
+                        <div class="first-last">
+                            <input name="pageIndex${currentPage-1}" type="submit" class="pagecursorbtn perm_not_disabled page" title="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.previous.label', 'forter_bm', null)}" value="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.previous', 'forter_bm', null)}"/>
+                        </div>
+                    </isif>
+
+                    <isif condition="${maxPage >= 1}">
+                        <isloop status="i" begin="${rangeBegin}" end="${rangeEnd}">
+                            <isif condition="${i.index != currentPage}">
+                                <div>
+                                    <iscomment>This long line is needed to avoid extra whitespaces in the link text</iscomment>
+                                    <input name="pageIndex<isprint value="${i.index}" style="0"/>" type="submit" class="pagecursorbtn perm_not_disabled page-<isprint value="${i.index + 1}" style="0"/>" title="${dw.web.Resource.msgf('forter_bm.configuration.pagingbar.goto.label', 'forter_bm', null, i.index + 1)}" value=<isprint value="${i.index + 1}" style="0"/>>
+                                </div>
+                            <iselse/>
+                                <div class="current-page pagecursoritem top" title="${dw.web.Resource.msgf('forter_bm.configuration.pagingbar.current.label', 'forter_bm', null, i.index + 1)}">
+                                    <b><isprint value="${i.index + 1}" style="0"/></b>
+                                </div>
+                            </isif>
+                        </isloop>
+
+                        <isif condition="${(current < totalCount - pageSize) && (maxPage > 1)}">
+                            <div class="first-last">
+                                <input name="pageIndex${currentPage+1}" type="submit" class="pagecursorbtn perm_not_disabled page" title="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.next.label', 'forter_bm', null)}" value="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.next', 'forter_bm', null)}"/>
+                            </div>
+                            <div class="first-last">
+                                <input name="pageIndex${maxPage}" type="submit" class="pagecursorbtn perm_not_disabled page" title="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.last', 'forter_bm', null)}" value="${dw.web.Resource.msg('forter_bm.configuration.pagingbar.last', 'forter_bm', null)}"</>
+                            </div>
+                        </isif>
+                    </isif>
+                </isif>
+            </div>
+        </div>
+    </form>
+</isif>

@@ -1,0 +1,30 @@
+/**
+*   Script looking for 10486 error in SetExpressCheckout call
+*
+*   @input setExpressCheckoutResponseData : dw.util.HashMap  response data from the setExpressCheckout API call
+*
+*   @output errorCodeMatch : Boolean state to indicate if error 10486 is in error list
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : HashMap = args.setExpressCheckoutResponseData;
+	var error : Boolean = false;
+
+	for each (let prop in data) {
+
+		error = prop.indexOf('10486') != -1 ? true : false; 
+
+		if (error) {
+			break;
+		}
+	}
+
+	args.errorCodeMatch = error;
+
+	return PIPELET_NEXT;
+}

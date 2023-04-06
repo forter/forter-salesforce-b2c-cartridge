@@ -1,0 +1,150 @@
+/**
+*	Save result of the GetExpressCheckout API call and update order data
+*
+*	@input GetExpressCheckoutDetailsResponseContainer : Object parsed response result
+*	@input LineItemContainer : dw.order.LineItemCtnr order object
+*	@input PaymentInstrument : dw.order.OrderPaymentInstrument current payment instrument
+*	@input PaypalCheckoutFromCart : Boolean value, which indicates if transaction was made from cart
+*	@input PayPalCredit : Boolean value, which indicates if PayPal credit flow is active
+*
+*/
+
+var order : Object = require('dw/order');
+var util : Object = require('dw/util');
+var value : Object = require('dw/value');
+var system : Object = require('dw/system');
+var web : Object = require('dw/web');
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var responseData : Object = args.GetExpressCheckoutDetailsResponseContainer.data;
+	var lineItemContainer : order.LineItemCtnr = args.LineItemContainer;
+	var paymentInstrument : order.PaymentInstrument = args.PaymentInstrument;
+	var paymentTransaction : order.PaymentTransaction = paymentInstrument.getPaymentTransaction();
+	var amount : value.Money = new value.Money(responseData.amt, lineItemContainer.getCurrencyCode());
+	var paypalCheckoutFromCart : Boolean = args.PaypalCheckoutFromCart;
+	var payPalCredit : Boolean = args.PayPalCredit;
+	var guestMessage : String = web.Resource.msg('paypal.checkout.guest','locale',null);
+
+	//Set customer email from PayPal account
+	if (paypalCheckoutFromCart && !customer.isAuthenticated()) {
+		lineItemContainer.setCustomerEmail(responseData.email);
+	} else if (customer.isAuthenticated()) {
+		lineItemContainer.setCustomerEmail(customer.getProfile().getEmail());
+	}
+
+	//Set PayPal Buyer ID and Token
+	paymentInstrument.custom.paypalPayerID = responseData.payerid;
+	paymentInstrument.custom.paypalEmail = responseData.email;
+	paymentInstrument.custom.paypalToken = responseData.token;
+	paymentInstrument.custom.paypalCredit = payPalCredit;
+	paymentTransaction.setAmount(amount);
+	
+	lineItemContainer.custom.paypalTempExpressCheckoutPayerID = responseData.payerid;
+	lineItemContainer.custom.paypalTempExpressCheckoutToken = responseData.token;
+	lineItemContainer.custom.paypalTempExpressCheckoutEmail = responseData.email;
+	
+	if (!prefs.PP_API_ShippingAddressOverride || paypalCheckoutFromCart) {
+		
+		let shippingAddress : dw.order.OrderAddress = lineItemContainer.getDefaultShipment().getShippingAddress();
+		updateShippingAddress(responseData, shippingAddress, 0);			
+	}
+	
+	if (prefs.PP_API_RequestBillingAddressFromPayPal && paypalCheckoutFromCart) {
+		
+		let billingAddress : order.OrderAddress = lineItemContainer.getBillingAddress();
+		updateBillingAddress(responseData, billingAddress);
+	}
+
+	if (!prefs.PP_API_RequestBillingAddressFromPayPal) {
+		if (!lineItemContainer.getCustomer().isAuthenticated() && empty(lineItemContainer.getBillingAddress().getFirstName())) {
+			lineItemContainer.getBillingAddress().setFirstName(guestMessage);	
+		}
+	}	
+
+	return PIPELET_NEXT;
+}
+
+/**
+ * updateBillingAddress() update billing address using data from GetExpressCheckout API call
+ *
+ * @param data {dw.util.HashMap} response data from GetExpressCheckout API call
+ * @param address {dw.order.OrderAddress} current billing address
+ * @returns {dw.order.OrderAddress} new billing address
+ */
+function updateBillingAddress(data : util.HashMap, address : order.OrderAddress) : order.OrderAddress {
+	
+	if(!address) {
+		return false;
+	}
+
+	
+	var names : Object = paypalHelper.createPersonNameObject(data.billingname);
+
+	address.setFirstName(names.firstName);
+
+	if (!empty(names.secondName)) {
+		address.setSecondName(names.secondName);
+	}
+
+	if (!empty(names.lastName)) {
+		address.setLastName(names.lastName);
+	}
+	
+	var isCountryCodesUpperCase : Boolean = paypalHelper.isCountryCodesUpperCase();
+	var countryCode : String = data.get('countrycode') || '';
+
+	address.setAddress1(data.get('street'));
+	address.setCity(data.get('city'));
+	address.setPostalCode(data.get('zip'));
+	address.setCountryCode(isCountryCodesUpperCase ? countryCode.toUpperCase() : countryCode.toLowerCase());
+	address.setStateCode(data.get('state'));
+	address.setPhone(data.get('shiptophonenum'));
+
+	return address;
+}
+
+/**
+ * updateShippingAddress() update shipping address using data from GetExpressCheckout API call
+ *
+ * @param data {dw.util.HashMap} response data from GetExpressCheckout API call
+ * @param address {dw.customer.CustomerAddress} current shipping address
+ * @param count {Number} number, from which begins countdown
+ * @returns {dw.customer.CustomerAddress} new shipping address
+ */
+function updateShippingAddress(data : util.HashMap, address : dw.customer.CustomerAddress, count : Number) : dw.customer.CustomerAddress {
+	
+	if(!address) {
+		return false;
+	}
+
+	let count = count || 0;
+
+	var names : Object = paypalHelper.createPersonNameObject(data.get('paymentrequest_' + count + '_shiptoname'));
+
+	address.setFirstName(names.firstName);
+
+	if (!empty(names.secondName)) {
+		address.setSecondName(names.secondName);
+	}
+
+	if (!empty(names.lastName)) {
+		address.setLastName(names.lastName);
+	}
+	
+	var countryCode : String = data.get('paymentrequest_' + count + '_shiptocountrycode') || '';
+	var isCountryCodesUpperCase : Boolean = paypalHelper.isCountryCodesUpperCase();
+
+	address.setAddress1(data.get('paymentrequest_' + count + '_shiptostreet'));
+	address.setAddress2(data.get('paymentrequest_' + count + '_shiptostreet2'));
+	address.setCity(data.get('paymentrequest_' + count + '_shiptocity'));
+	address.setPhone(data.get('paymentrequest_' + count + '_shiptophonenum'));
+	address.setPostalCode(data.get('paymentrequest_' + count + '_shiptozip'));
+	address.setCountryCode(isCountryCodesUpperCase ? countryCode.toUpperCase() : countryCode.toLowerCase());
+	address.setStateCode(data.get('paymentrequest_' + count + '_shiptostate'));
+
+	return address;
+}

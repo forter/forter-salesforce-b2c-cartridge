@@ -1,0 +1,59 @@
+/**
+* Combine orders and PayPalNewTransactions Custom Objects into one array for pagination
+*
+*   @input OrderNo : String  Order number used in "Search by order number" feature
+*   @output Orders : dw.util.ArrayList Combined array with all orders
+*
+*/
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var paypalHelper : Object = require('int_paypal/cartridge/scripts/modules/PaypalHelper.ds');
+	var systemOrders = dw.object.SystemObjectMgr.querySystemObjects('Order', "orderNo LIKE {0} AND custom.paypalPaymentMethod = 'express' AND status != {1}", "orderNo desc", args.OrderNo, dw.order.Order.ORDER_STATUS_FAILED);
+	var paypalOrders = dw.object.CustomObjectMgr.queryCustomObjects('PayPalNewTransactions', "custom.orderNo LIKE {0}", "custom.orderNo desc", args.OrderNo);
+	var orders = new dw.util.ArrayList();
+
+	while(systemOrders.hasNext()) {
+		let order = systemOrders.next();
+		let paymentInstrument : dw.order.OrderPaymentInstrument = paypalHelper.getPaypalExpressPaymentInstrument(order);
+		let orderDate = new Date(order.creationDate);
+		let obj = {
+			orderNo: order.orderNo,
+			orderDate: dw.util.StringUtils.formatCalendar(new dw.util.Calendar(orderDate), 'M/dd/yy h:mm a'),
+			createdBy: order.createdBy,
+			isRegestered: order.customer.registered,
+			customer: order.customerName,
+			email: order.customerEmail,
+			orderTotal: order.totalGrossPrice,
+			paypalAmount: paymentInstrument.getPaymentTransaction().getAmount(),
+			status: paymentInstrument.custom.paypalPaymentStatus,
+			dateCompare: orderDate.getTime(),
+			isCustom: false,
+		};
+		orders.push(obj);
+	}
+
+	while(paypalOrders.hasNext()) {
+		let order = paypalOrders.next().custom;
+		let orderDate = new Date(order.orderDate.replace('Z', '.000Z'));
+		let orderTotal = new dw.value.Money(order.orderTotal, order.currencyCode);
+		let obj = {
+			orderNo: order.orderNo,
+			orderDate: dw.util.StringUtils.formatCalendar(new dw.util.Calendar(orderDate), 'M/dd/yy h:mm a'),
+			createdBy: 'Merchant',
+			regStatus: 'Unknown',
+			customer: order.firstName + ' ' + order.lastName,
+			email: order.email,
+			orderTotal: orderTotal,
+			paypalAmount: orderTotal,
+			status: order.paymentStatus,
+			isCustom: true,
+			dateCompare: orderDate.getTime()
+		};
+		orders.push(obj);
+	}
+	
+	orders.sort(new dw.util.PropertyComparator('dateCompare', false));
+	args.Orders = orders;
+	return PIPELET_NEXT;
+}

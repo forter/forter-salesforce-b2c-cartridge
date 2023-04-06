@@ -1,0 +1,52 @@
+<isif condition="${dw.order.PaymentMgr.getPaymentMethod('PayPal').getPaymentProcessor().getID() == 'PAYPAL_EXPRESS'}" >
+	<isscript>
+		var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+		var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+		var site : dw.system.Site = dw.system.Site.getCurrent();
+		var merchantID : String = site.getCustomPreferenceValue('PP_Merchant_ID');
+		var buttonSrc : String = site.getCustomPreferenceValue('PP_CheckoutButtonUrl');
+		var buttonID : String = 'paypalExpressButton' + (new Date()).getTime();
+		var customerBillingAgreement : Object = paypalHelper.getCustomerBillingAgreement(pdict.CurrentCustomer);
+		var isCustomButtonId : Boolean = !empty(prefs.PP_IncontextButtonIds);
+	</isscript>
+
+	<isif condition="${site.getCustomPreferenceValue('PP_ShowExpressCheckoutButtonOnCart')}">
+		<isif condition="${pdict.CurrentCustomer.authenticated && customerBillingAgreement.hasAnyBillingAgreement && site.getCustomPreferenceValue('PP_BillingAgreementState') != 'DoNotCreate'}">
+			
+			<isscript>
+				var isAddressExist : Boolean = !!customerBillingAgreement.getDefaultShippingAddress();
+				if(pdict.Basket.getDefaultShipment().productLineItems.length <= 0) {
+					isAddressExist = true;
+				}
+			</isscript>
+			
+			<a class="js_paypal_start_ba_checkout" href="${dw.web.URLUtils.https('Paypal-StartBillingAgreementCheckout')}" data-is-address-exist="${isAddressExist}" data-edit-address-url="${dw.web.URLUtils.https('Paypal-EditDefaultShippinAddress')}" data-edit-address-title="${Resource.msg('paypal.editdefaultshippingaddress.title','locale',null)}">
+				<img src="${buttonSrc}" />
+			</a>
+		<iselse>
+			<isif condition="${site.getCustomPreferenceValue('PP_EnableIncontextCheckout')}">
+				<a href="${dw.web.URLUtils.https('Paypal-IncontextCheckout', 'checkoutFromtCart', 'true')}" id="${buttonID}"><img src="${buttonSrc}" /></a>
+				<script>
+					window.paypalCheckoutButtons ? window.paypalCheckoutButtons.push('${buttonID}') : window.paypalCheckoutButtons = ['${buttonID}'];
+					if(${isCustomButtonId}){
+						window.paypalCheckoutButtons = window.paypalCheckoutButtons.concat('${prefs.PP_IncontextButtonIds}'.replace(/\s/g, '').split(','));
+					}
+					window.paypalCheckoutReady = function () {
+						paypal.checkout.setup('${merchantID}', {
+							button : window.paypalCheckoutButtons,
+							environment : '${prefs.incontextEnvironment}'
+						});
+					}
+				</script>
+				<isif condition="${!request.custom.checkoutJsLoaded}">
+					<script src="//www.paypalobjects.com/api/checkout.js" defer></script>
+					<isset name="checkoutJsLoaded" value="true" scope="request" />
+				</isif>
+			<iselse>
+				<a href="${dw.web.URLUtils.https('Paypal-StartExpressCheckoutFromCartFlow')}"><img src="${buttonSrc}" /></a>
+			</isif>
+		
+		</isif>
+		<span>${Resource.msg('paypal.or','locale',null)}</span>
+	</isif>
+</isif>

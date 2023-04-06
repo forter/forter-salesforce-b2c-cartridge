@@ -1,0 +1,45 @@
+/**
+*	Sends the received message from paypal for validation and parse response
+*
+*	@input NotificationParameterMap : dw.web.HttpParameterMap incoming request http parameter map
+*
+*	@output Notification : dw.util.HashMap
+*	@output ActionPipeline : String
+*/
+
+var web : Object = require('dw/web');
+var util : Object = require('dw/util');
+var ipn : Object = require('~/cartridge/scripts/modules/Ipn.ds');
+var system : Object = require('dw/system');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+var logger : system.Log = paypalHelper.getLogger('IPN');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var notificationParameterMap : web.HttpParameterMap = args.NotificationParameterMap;
+	var notification : util.HashMap = null;
+
+	try {
+		notification = ipn.parseNotification(notificationParameterMap);
+	} catch (error) {
+		logger.error(error);
+	}
+
+	if (prefs.PP_LogIpnNotifications) {
+		ipn.logNotification(notification);
+	}
+
+	var isIpnAuthentic = ipn.isAuthentic(notification);
+
+	if (!isIpnAuthentic) {
+		logger.error('Cannot verify incoming IPN notification. Sign: ' + notification.get('verify_sign'));
+		return PIPELET_ERROR;
+	}
+
+	args.Notification = notification;
+
+	return PIPELET_NEXT;
+
+}

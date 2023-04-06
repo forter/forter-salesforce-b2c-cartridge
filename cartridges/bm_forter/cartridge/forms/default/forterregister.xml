@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19" secure="true">
+
+	<!-- configure footer -->
+	<field formid="configureFooter" type="boolean" label="Enabled"
+		mandatory="false" />
+
+	<!-- communication -->
+	<field formid="declineDecision" type="boolean"
+		label="Show decline page when Forter has returned a decline decision"
+		mandatory="false" default-value="true" />
+
+	<!-- payment settings -->
+	<field formid="autoInvoice" type="boolean"
+		label="Auto-invoice when transaction is approved" mandatory="false"
+		default-value="false" />
+	<field formid="cancelOrder" type="boolean"
+		label="Cancel order when transaction is declined" mandatory="false"
+		default-value="false" />
+
+	<!-- API credentials -->
+	<field formid="siteID" type="string" label="Site ID" mandatory="true"/>
+	<field formid="secretKey" type="string" label="Secret key" mandatory="true" />
+
+	<!-- functional buttons -->
+	<action formid="save" valid-form="true"/>
+	<action formid="link" valid-form="true"/>
+</form>

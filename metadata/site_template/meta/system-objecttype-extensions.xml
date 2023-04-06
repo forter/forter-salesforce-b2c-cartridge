@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="forterDecision">
+                <display-name xml:lang="x-default">Forter decision</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Not sent</display>
+                        <value>NOT_SENT</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Approved</display>
+                        <value>APPROVED</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Declined</display>
+                        <value>DECLINED</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Not reviewed</display>
+                        <value>NOT_REVIEWED</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Failed</display>
+                        <value>FAILED</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Error</display>
+                        <value>ERROR</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterOrderLink">
+                <display-name xml:lang="x-default">Forter Order Link</display-name>
+                <description xml:lang="x-default">Forter Order Link</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterOrderStatus">
+                <display-name xml:lang="x-default">Forter Order Status</display-name>
+                <description xml:lang="x-default">Order Status when the last forter call was made</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterRemoteStatusRequest">
+                <display-name xml:lang="x-default">Mapping to Forter statuses according the order status</display-name>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">PROCESSING</display>
+                        <value>0</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PROCESSING</display>
+                        <value>3</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PROCESSING</display>
+                        <value>4</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">COMPLETED</display>
+                        <value>5</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">CANCELED_BY_MERCHANT</display>
+                        <value>6</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">CANCELED_BY_MERCHANT</display>
+                        <value>7</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">CANCELED_BY_MERCHANT</display>
+                        <value>8</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">CANCELED_BY_CUSTOMER</display>
+                        <value>9</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterRetryNumber">
+                <display-name xml:lang="x-default">Retry number</display-name>
+                <description xml:lang="x-default">Store the first 6 digits to be able to retry the request to forter if there was a timeout in the checkout request.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterTokenCookie">
+                <display-name xml:lang="x-default">Forter Token Cookie</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterUserAgent">
+                <display-name xml:lang="x-default">Forter User Agent</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterRecommendations">
+                <display-name xml:lang="x-default">Forter Recommendations</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="forterGroup">
+                <display-name xml:lang="x-default">Forter group</display-name>
+                <attribute attribute-id="forterDecision"/>
+                <attribute attribute-id="forterOrderLink"/>
+                <attribute attribute-id="forterOrderStatus"/>
+                <attribute attribute-id="forterRemoteStatusRequest"/>
+                <attribute attribute-id="forterUserAgent"/>
+                <attribute attribute-id="forterTokenCookie"/>
+                <attribute attribute-id="forterRetryNumber"/>
+                <attribute attribute-id="forterRecommendations"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+	
+	<type-extension type-id="OrderPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="authorize_net_authorization">
+                <display-name xml:lang="x-default">Authorize.net Authorization response</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="authorize_net_authorization_json">
+                <display-name xml:lang="x-default">Authorize.net Authorization response</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="authorize_net_capture">
+                <display-name xml:lang="x-default">Authorize.net Capture response</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="authorize_net_void">
+                <display-name xml:lang="x-default">Authorize.net Void response</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
+	
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="authorizenetName">
+                <display-name xml:lang="x-default">Authorizenet name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="authorizenetTransactionKey">
+                <display-name xml:lang="x-default">Authorizenet transaction key</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterAutoInvoiceOnApprove">
+                <display-name xml:lang="x-default">Forter Auto-Invoice On Approve</display-name>
+                <description xml:lang="x-default">Forter Auto-Invoice On Approve</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterCancelOrderOnDecline">
+                <display-name xml:lang="x-default">Forter Cancel Order On Decline</display-name>
+                <description xml:lang="x-default">Forter Cancel Order On Decline</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterCustomDeclineMessage">
+                <display-name xml:lang="x-default">Forter Custom Decline Message</display-name>
+                <description xml:lang="x-default">Forter Custom Decline Message</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="versionAPI">
+                <display-name xml:lang="x-default">API Version</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterEnabled">
+                <display-name xml:lang="x-default">Forter Enabled</display-name>
+                <description xml:lang="x-default">Defines if the Forter service is enabled</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterSecretKey">
+                <display-name xml:lang="x-default">Forter Secret Key</display-name>
+                <description xml:lang="x-default">Forter Secret Key</description>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterShowDeclinedPage">
+                <display-name xml:lang="x-default">Forter Show Declined Page</display-name>
+                <description xml:lang="x-default">Forter Show Declined Page</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterSiteID">
+                <display-name xml:lang="x-default">Forter Site ID</display-name>
+                <description xml:lang="x-default">Forter Site ID</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterWeeksAmount">
+                <display-name xml:lang="x-default">Number of weeks</display-name>
+                <description xml:lang="x-default">Number of weeks for the ForterOrderUpdate job.</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+        <min-value>1.0</min-value>
+        <default-value>4</default-value>
+            </attribute-definition>
+           <attribute-definition attribute-id="forterForceForterDecision">
+                <display-name xml:lang="x-default">Force Forter decision</display-name>
+                <description xml:lang="x-default">For test porpuse only, this will force a response from Forter</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">DISABLED</display>
+                        <value>DISABLED</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">APPROVED</display>
+                        <value>0.0.0.1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">DECLINED</display>
+                        <value>0.0.0.2</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">NOT_REVIEWED</display>
+                        <value>0.0.0.3</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">VERIFICATION_REQUIRED</display>
+                        <value>0.0.0.4</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="forter">
+                <display-name xml:lang="x-default">Forter</display-name>
+                <attribute attribute-id="forterEnabled"/>
+                <attribute attribute-id="forterCancelOrderOnDecline"/>
+                <attribute attribute-id="forterAutoInvoiceOnApprove"/>
+                <attribute attribute-id="forterCustomDeclineMessage"/>
+                <attribute attribute-id="forterShowDeclinedPage"/>
+                <attribute attribute-id="forterSecretKey"/>
+                <attribute attribute-id="forterSiteID"/>
+                <attribute attribute-id="forterWeeksAmount"/>
+                <attribute attribute-id="forterForceForterDecision"/>
+                <attribute attribute-id="versionAPI"/>
+            </attribute-group>
+            <attribute-group group-id="authorizenet">
+                <display-name xml:lang="x-default">Authorizenet</display-name>
+                <attribute attribute-id="authorizenetName"/>
+                <attribute attribute-id="authorizenetTransactionKey"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

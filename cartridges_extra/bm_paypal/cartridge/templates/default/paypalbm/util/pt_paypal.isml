@@ -1,0 +1,50 @@
+<isif condition="${pdict.CurrentHttpParameterMap.format.stringValue == 'ajax'}">
+
+	<isdecorate template="paypalbm/util/pt_empty">
+	
+		<div class="paypalbm_content paypalbm_content_ajax">
+			<isreplace/>
+		</div>
+		
+	</isdecorate>
+	
+<iselse>
+
+	<isdecorate template="application/MenuFrame">
+	
+		<link rel="stylesheet" href="${URLUtils.staticURL('/paypalbm/css/bm.css')}" />
+		<link rel="stylesheet" href="${URLUtils.staticURL('/jscript/ext/resources/css/ext-all.css')}" />
+		
+		<script type="text/javascript" src="${URLUtils.staticURL('/jscript/ext/adapter/ext/ext-base.js')}"></script>
+		<script type="text/javascript" src="${URLUtils.staticURL('/jscript/ext/ext-all.js')}"></script>
+		
+		<script type="text/javascript" src="${URLUtils.staticURL('/paypalbm/js/paypalAdmin.js')}"></script>
+
+		<script type="text/javascript">
+			paypalAdmin.init({
+				urls: {
+					orderTransaction: "${URLUtils.url('PaypalAdmin-OrderTransaction')}",
+					action: "${URLUtils.url('PaypalAdmin-Action')}"
+				},
+				resources: {
+					submit: "${Resource.msg('forms.submit', 'paypalbm', null)}",
+					cancel: "${Resource.msg('forms.cancel', 'paypalbm', null)}",
+					errorMsgTitle: "${Resource.msg('msg.error.title', 'paypalbm', null)}",
+					serverError: "${Resource.msg('server.error', 'paypalbm', null)}",
+					pleaseWait: "${Resource.msg('msg.pleasewait', 'paypalbm', null)}",
+					loadMaskText: {
+						authorization: "${Resource.msg('msg.creatingauthorizationtransaction', 'paypalbm', null)}",
+						capture: "${Resource.msg('msg.creatingcapturetransaction', 'paypalbm', null)}"
+					}
+				}
+			});
+		</script>
+		
+		<div class="paypalbm_content js_paypalbm_content">
+			<isreplace/>
+		</div>
+	
+	</isdecorate>
+
+</isif>
+

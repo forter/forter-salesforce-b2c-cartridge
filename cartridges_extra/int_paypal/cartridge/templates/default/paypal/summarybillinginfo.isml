@@ -1,0 +1,11 @@
+<isif condition="${dw.order.PaymentMgr.getPaymentMethod('PayPal').getPaymentProcessor().getID() == 'PAYPAL_EXPRESS'}" >
+	<isif condition="${paymentInstr.custom.paypalBillingAgreement}">
+		<div class="paypal-summary-billing-additional-info">
+			<isscript>
+				var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+				var customerBillingAgreementItem : Object = paypalHelper.getCustomerBillingAgreement(customer).getDefault();
+			</isscript>
+			${Resource.msgf('paypal.checkout.summarybillinginfo', 'locale', null, customerBillingAgreementItem.email)}
+		</div>
+	</isif>
+</isif>

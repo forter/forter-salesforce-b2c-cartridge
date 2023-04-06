@@ -1,0 +1,36 @@
+/**
+* Creates data for DoReferenceTransaction API call
+*
+* @input REFERENCEID : Object The earliest transaction date at which to start the search.
+* @input LineItemContainer : dw.order.LineItemCtnr Order object with items/shipping data.
+* @input CREDITCARDTYPE : String The buyer�s credit card type
+* @input ACCT : String Credit card account number
+* @input EXPDATE : String Credit card expiration date
+* @input CVV2 : String The CVV2, CVC, or CSC from the card
+* @input INVNUM : String Unique invoice or tracking number for this purchase.
+*
+* @output ReferenceTransactionRequestContainer : Object Data prepared for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : dw.util.HashMap = paypalHelper.createReferenceTransactionRequestData(args.LineItemContainer); 
+
+	data.put('REFERENCEID', args.REFERENCEID);
+	data.put('CREDITCARDTYPE', args.CREDITCARDTYPE);
+	data.put('ACCT', args.ACCT);
+	data.put('CVV2', args.CVV2);
+	data.put('INVNUM', args.INVNUM);
+	data.put('PAYMENTTYPE', prefs.PP_API_BillingAgreementPaymentType);
+	data.put('IPADDRESS', request.getHttpRemoteAddress());
+
+	args.ReferenceTransactionRequestContainer = {
+		method : prefs.api.DoReferenceTransaction.method,
+		data : data
+	}
+
+	return PIPELET_NEXT;
+}

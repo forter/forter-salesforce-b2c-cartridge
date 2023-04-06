@@ -1,0 +1,22 @@
+/**
+*	Creates data for DoDirectPayment API call
+*
+*	@input Request : Object The earliest transaction date at which to start the search.
+*	@input Order : dw.order.Order The earliest transaction date at which to start the search.
+*	@input Cvn : String The earliest transaction date at which to start the search.
+*
+*	@output DirectPaymentRequestContainer : Object Data prepaired for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	args.DirectPaymentRequestContainer = {
+		method : prefs.api.DoDirectPayment.method,
+		data : paypalHelper.createDirectPaymentData(args.Order, args.Cvn, args.Request.getHttpRemoteAddress())
+	}
+
+	return PIPELET_NEXT;
+}

@@ -1,0 +1,61 @@
+<div id="paypal_referencetransaction_form" class="paypal_hide">	
+	<form class="paypal_action_form paypal_reference_transaction_form paypalbm_content" action="${URLUtils.url('PaypalAdmin-Action')}">	
+	
+		<h2>${Resource.msgf('transaction.referencetransaction.title', 'paypalbm', null)}</h2>
+
+		<input type="hidden" name="methodName" value="DoReferenceTransaction" />
+		<input type="hidden" name="referenceId" value="${transaction.transactionid}" />
+		<input type="hidden" name="isCustomOrder" value="${pdict.isCustomOrder}" />
+		
+		<div class="paypal_error_msg_box paypal_error_msg_box_amt_required"><p>${Resource.msg('forms.error.amt.required', 'paypalbm', null)}</p></div>
+		<div class="paypal_error_msg_box paypal_error_msg_box_amt_greaterzero"><p>${Resource.msg('forms.error.amt.greaterzero', 'paypalbm', null)}</p></div>
+		<div class="paypal_error_msg_box paypal_error_msg_box_amt_float"><p>${Resource.msg('forms.error.amt.float', 'paypalbm', null)}</p></div>
+
+		<div class="paypal_error_msg_box paypal_error_msg_box_tax_float"><p>${Resource.msg('forms.error.amt.float', 'paypalbm', null)}</p></div>
+
+		<table class="paypalbm_transaction_detail_table infobox w e s n">
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.name', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					${Resource.msgf('transaction.detail.customerformat', 'paypalbm', null, transaction.firstname, transaction.lastname)}
+				</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.email', 'paypalbm', null)}</td>
+				<td class="infobox_item top">${email}</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.transactionid', 'paypalbm', null)}</td>
+				<td class="infobox_item top">${transaction.transactionid}</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.creationdate', 'paypalbm', null)}</td>
+				<td class="infobox_item top">${formatedDate(transaction.ordertime)}</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.amount', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="amt" data-validation="required,float,greaterzero" />
+					<isprint value="${transaction.currencycode}"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.tax', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<input type="text" name="taxamt" value ="0" data-validation="float" />
+					<isprint value="${transaction.currencycode}"/>
+				</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.referencetransaction.paymentaction', 'paypalbm', null)}</td>
+				<td class="infobox_item top">
+					<select name='paymentAction'>					
+						<option ${currentPaymentAction === "Sale" ? "selected" : ''} value='Sale'>${Resource.msg('transaction.referencetransaction.paymentaction.sale', 'paypalbm', null)}</option>
+						<option ${currentPaymentAction === "Authorization" ? "selected" : ''} value='Authorization'>${Resource.msg('transaction.referencetransaction.paymentaction.authorization', 'paypalbm', null)}</option>
+						<option ${currentPaymentAction === "Order" ? "selected" : ''} value='Order'>${Resource.msg('transaction.referencetransaction.paymentaction.order', 'paypalbm', null)}</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>

@@ -1,0 +1,53 @@
+/**
+* Call forter order validate functionality.
+*
+* @input Order               : dw.order.Order
+* @input authorizationStep   : String
+* @output JsonResponseOutput : Object
+* @output PlaceOrderError    : Object
+*/
+
+function execute(args) {
+    var ForterLogger = require('*/cartridge/scripts/lib/forter/ForterLogger');
+    var ForterResponse = require('*/cartridge/scripts/lib/forter/ForterResponse');
+    var log = new ForterLogger('ForterCallValidate.ds');
+
+    try {
+        var argOrderValidate = {
+            Order: args.Order,
+            orderValidateAttemptInput: 1,
+            authorizationStep: args.authorizationStep
+        };
+        var forterController    = require('*/cartridge/controllers/ForterValidate');
+
+        var forterDecision = forterController.ValidateOrder(argOrderValidate);
+
+        if (forterDecision.result === false && forterDecision.orderValidateAttemptInput === 2) {
+            var argOrderValidate = {
+                Order: args.Order,
+                orderValidateAttemptInput: 2,
+                authorizationStep: args.authorizationStep
+             };
+
+             forterDecision = forterController.ValidateOrder(argOrderValidate);
+        }
+
+        args.JsonResponseOutput = forterDecision;
+
+        if (!empty(args.JsonResponseOutput.PlaceOrderError)) {
+            args.PlaceOrderError = args.JsonResponseOutput.PlaceOrderError;
+        }
+    } catch (e) {
+        var fResponse = new ForterResponse();
+            fResponse.actionEnum = 'ERROR';
+            fResponse.processorAction = 'internalError';
+        var forterDecision = {};
+        forterDecision.JsonResponseOutput = fResponse;
+        args.JsonResponseOutput = forterDecision;
+
+        log.error(e);
+        return PIPELET_ERROR;
+    }
+
+    return PIPELET_NEXT;
+}

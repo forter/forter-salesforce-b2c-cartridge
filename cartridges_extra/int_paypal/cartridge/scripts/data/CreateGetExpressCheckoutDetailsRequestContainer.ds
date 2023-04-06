@@ -1,0 +1,26 @@
+/**
+*	Creates data for GetExpressCheckoutDetails API call
+*
+*	@input ExpressCheckoutToken : String Token from paypal (SetExpressCheckout call result)
+*
+*	@output GetExpressCheckoutDetailsRequestData : Object Data prepaired for request {method : {String}, data : {Object}}
+*/
+
+var order : Object = require('dw/order');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var expressCheckoutToken : String = args.ExpressCheckoutToken;
+
+	//Collect required data for SetExpressRequest
+	args.GetExpressCheckoutDetailsRequestData = {
+		method : prefs.api.GetExpressCheckoutDetails.method,
+		data : {
+			'TOKEN' : expressCheckoutToken
+		}
+	};
+
+	return PIPELET_NEXT;
+}

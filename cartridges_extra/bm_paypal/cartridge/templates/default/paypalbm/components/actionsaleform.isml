@@ -1,0 +1,54 @@
+<div id="paypal_sale_form" class="paypal_hide">
+	<form class="paypal_action_form paypalbm_content" action="${URLUtils.url('PaypalAdmin-Action')}">
+		
+		<input type="hidden" name="methodName" value="DoAuthorization" />
+		<input type="hidden" name="transactionId" value="${transaction.transactionid}" />
+		<input type="hidden" name="invoiceId" value="${transaction.invnum}" />
+		<input type="hidden" name="currencyCode" value="${transaction.currencycode}" />
+		<input type="hidden" name="authorizationId" value="null" />
+		<input type="hidden" name="isCustomOrder" value="${pdict.isCustomOrder}" />
+		<input type="hidden" name="orderNo" value="${order.orderNo}" />
+		
+		<h2>${Resource.msg('transaction.sale.title', 'paypalbm', null)}</h2>
+		
+		<div class="paypal_error_msg_box paypal_error_msg_box_amt_required"><p>${Resource.msg('forms.error.amt.required', 'paypalbm', null)}</p></div>
+		<div class="paypal_error_msg_box paypal_error_msg_box_amt_greaterzero"><p>${Resource.msg('forms.error.amt.greaterzero', 'paypalbm', null)}</p></div>
+		<div class="paypal_error_msg_box paypal_error_msg_box_amt_float"><p>${Resource.msg('forms.error.amt.float', 'paypalbm', null)}</p></div>
+		
+		<table class="paypalbm_transaction_detail_table infobox w e s n">
+		<isif condition="${!isOrder}" >
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.detail.completetype', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">
+					<select name="completeType">
+						<option value="Complete">${Resource.msg('transaction.detail.completetype.option.complete', 'paypalbm', null)}</option>
+						<option value="NotComplete" selected="selected">${Resource.msg('transaction.detail.completetype.option.notcomplete', 'paypalbm', null)}</option>
+					</select>
+				</td>
+			</tr>
+		<iselse>
+			<input name="completeType" value="NotComplete" type="hidden" />
+		</isif>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.detail.transactionid', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${transaction.transactionid}</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.detail.name', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${Resource.msgf('transaction.detail.customerformat', 'paypalbm', null, transaction.firstname, transaction.lastname)}</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.detail.email', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${email}</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.sale.amount', 'paypalbm', null)}:</td>
+				<td class="infobox_item top"><input type="text" name="amt" value="${transaction.amt}" data-validation="required,float,greaterzero" /> ${transaction.currencycode}</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.refund.invoicenumber', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${transaction.invnum}</td>
+			</tr>
+		</table>
+	</form>
+</div>

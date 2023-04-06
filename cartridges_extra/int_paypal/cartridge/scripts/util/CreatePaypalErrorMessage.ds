@@ -1,0 +1,40 @@
+/**
+* looking for error code 10736 in IPN response and records error message into pdict
+*
+* @input ResponseData : Object Response Data from service call
+* @output PayPalErrorMessage : String Error text to be presented to the customer
+*/
+
+var web : Object = require('dw/web');
+var util : Object = require('dw/util');
+
+var paypalHeper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHeper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var responseData : Object = args.ResponseData || new util.HashMap();
+	var message : String = null;
+	
+	for(let i = 0, len = responseData.size(); i < len; i++) {
+	
+		let errorCode : String = responseData.get('l_errorcode' + i);
+		let shortMessage : String = responseData.get('l_shortmessage' + i);
+		let longMessage : String = responseData.get('l_longmessage' + i);
+	
+		if(errorCode) {
+			message = longMessage || shortMessage;
+			message = web.Resource.msg('paypal.error.code' + errorCode, 'locale', message)
+		}
+		break;
+
+	}
+	
+	if(!message) {
+		message = web.Resource.msg('paypal.error.general', 'locale', null);
+	}
+
+	args.PayPalErrorMessage = message;
+
+	return PIPELET_NEXT;
+}

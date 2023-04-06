@@ -1,0 +1,105 @@
+var AuthorizenetConfig = require('int_authorizenet/cartridge/scripts/lib/authorizenet/AuthorizenetConfig.ds').AuthorizenetConfig;
+
+/**
+ * AuthorizenetRequest class is the DTO object for request.
+ *
+ * To include this script use:
+ * var AuthorizenetOrder = require("int_authorizenet/cartridge/scripts/lib/authorizenet/dto/AuthorizenetRequest.ds");
+ */
+function AuthorizenetRequest(args, authReqPage, transactionType, refTransId) {
+    var payment = null;
+    
+    if (!refTransId) {
+        var creditCard = new AuthorizenetCreditCard(args.PaymentInstrument, args.CurrentForms);
+        
+        if (authReqPage == true) {
+            payment = new AuthorizenetPayment(creditCard);
+        }
+    }
+    
+    var transactionRequest = new AuthorizenetTransactionRequest(args, payment, refTransId, authReqPage, transactionType);
+    
+    this.createTransactionRequest = new AuthorizenetCreateTransactionRequest(transactionRequest, args.Order);
+}
+
+/**
+ *  Create XML for request from createTransactionRequest object.
+ */
+AuthorizenetRequest.prototype.getXML = function() {
+    var xmlObj  = new XML('<createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"></createTransactionRequest>'),
+        request = AuthorizenetGenerateXML(this.createTransactionRequest, xmlObj);
+    
+    return request;
+};
+
+function AuthorizenetGenerateXML(obj, xmlObj) {
+    for (var prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            if (typeof obj[prop] === 'object') {
+                AuthorizenetGenerateXML(obj[prop], xmlObj[prop]);
+            } else {
+                xmlObj[prop] = obj[prop];
+            }
+        }
+    }
+    
+    return xmlObj;
+}
+
+/**
+ *  AuthorizenetCreditCard object of the request.
+ */
+function AuthorizenetCreditCard(cc, cf) {
+    var month = (cc.creditCardExpirationMonth < 10) ? "0" + cc.creditCardExpirationMonth : "" + cc.creditCardExpirationMonth,
+        year  = "" + (cc.creditCardExpirationYear % 100);
+    
+    this.cardNumber     = cf.billing.paymentMethods.creditCard.number.value;    // Required
+    this.expirationDate = month + year;                                         // Required
+    this.cardCode       = cf.billing.paymentMethods.creditCard.cvn.value;       // Required
+}
+
+/**
+ * AuthorizenetPayment object for request.
+ */
+function AuthorizenetPayment(cc) {
+    this.creditCard = cc;
+}
+
+/**
+ * AuthorizenetTransactionRequest object for request.
+ */
+function AuthorizenetTransactionRequest(args, payment, refTransId, authReqPage, transactionType) {
+    var authorizenetTransactionType = {
+        authOnlyTransaction         : "authOnlyTransaction",
+        priorAuthCaptureTransaction : "priorAuthCaptureTransaction",
+        voidTransaction             : "voidTransaction"
+    };
+    
+    this.transactionType = authorizenetTransactionType[transactionType];
+
+    if (authReqPage) {
+        this.amount  = args.PaymentInstrument.paymentTransaction.amount.value;
+        this.payment = payment;
+    } else {
+        this.refTransId = refTransId;
+    }
+}
+
+/**
+ * AuthorizenetMerchantAuthentication object of the request.
+ */
+function AuthorizenetMerchantAuthentication() {
+    this.name           = AuthorizenetConfig.getSitePreference("authorizenetName");
+    this.transactionKey = AuthorizenetConfig.getSitePreference("authorizenetTransactionKey");
+}
+
+/**
+ * AuthorizenetCreateTransactionRequest object for request.
+ */
+function AuthorizenetCreateTransactionRequest(transactionRequest, order) {
+    this.merchantAuthentication = new AuthorizenetMerchantAuthentication();
+    this.refId                  = order.orderNo;
+    this.transactionRequest     = transactionRequest;
+}
+
+module.exports = AuthorizenetRequest;

@@ -1,0 +1,42 @@
+var util : Object = require('dw/util');
+var svc : Object = require('dw/svc');
+
+var prefs : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds').getPrefs();
+
+/**
+ * createRequestHeaders() creates authentication and required headers for PayPal requests
+ *
+ * @param {String} method name
+ * @param {svc.ServiceCredential} Service credential object
+ * @returns {util.HashMap} HashMap of required parameters
+ */
+function createRequestHeaders(method : String, credential : svc.ServiceCredential) : util.HashMap {
+
+	var headers : util.HashMap = new util.HashMap();
+
+	//API method is mandatory argument
+	if (empty(method) || typeof method !== 'string') {
+		throw new Error('Cannot set PayPal API Method');
+	}
+
+	if (empty(credential)) {
+		throw new Error('Credential is not provided');
+	}
+
+	//Set API Username
+	headers.put('USER', credential.getUser());
+
+	//Set API Password
+	headers.put('PWD', credential.getPassword());
+
+	//Set API Method to run
+	headers.put('METHOD', method);
+
+	//Set API Method to run
+	headers.put('VERSION', prefs.PP_API_VERSION);
+
+	return headers;
+}
+
+
+module.exports = createRequestHeaders;

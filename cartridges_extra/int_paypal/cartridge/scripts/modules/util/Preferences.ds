@@ -1,0 +1,159 @@
+var system : Object = require('dw/system');
+var object : Object = require('dw/object');
+var web : Object = require('dw/web');
+var svc : Object = require('dw/svc');
+
+var prefs : Object = null;
+
+/**
+ * getSitePref() private module function-helper. returns requested preference by its name
+ *
+ * @param {String} preference name
+ * @returns {Object} custom preference
+ */
+function getSitePref(name : String) : Object {
+	return system.Site.getCurrent().getCustomPreferenceValue(name);
+}
+
+/**
+ * getPreferences() function. Returns PayPal custom and hardcoded preferences
+ *
+ * @returns {Object} custom and hardcoded preferences
+ */
+function getPreferences() : Object {
+
+	//If prefs are cached then return cached object
+	if (!empty(prefs)) {
+		return prefs;
+	}
+
+	prefs = {};
+
+	//Site custom preferences:
+	prefs.PP_API_ExpressPaymentAction = getSitePref('PP_API_ExpressPaymentAction').getValue();
+	prefs.PP_API_NoShipping = getSitePref('PP_API_NoShipping');
+	prefs.PP_API_AllowNote = getSitePref('PP_API_AllowNote');
+	prefs.PP_API_ReqConfirmShipping = getSitePref('PP_API_ReqConfirmShipping');
+	prefs.PP_API_RequestBillingAddressFromPayPal = getSitePref('PP_API_RequestBillingAddressFromPayPal');
+	prefs.PP_API_ShippingAddressOverride = getSitePref('PP_API_ShippingAddressOverride');
+	prefs.PP_API_PageStyle = getSitePref('PP_API_PageStyle');
+	prefs.PP_API_CartBorderColor = getSitePref('PP_API_CartBorderColor');
+	prefs.PP_API_LogoImg = getSitePref('PP_API_LogoImgageUrl');
+	prefs.PP_API_BrandName = getSitePref('PP_API_BrandName');
+	prefs.PP_API_CustomerServicenNumber = getSitePref('PP_API_CustomerServicePhoneNumber');
+	prefs.PP_API_PaymentsProPaymentAction = getSitePref('PP_API_PaymentsProPaymentAction').getValue();
+	prefs.PP_SolutionType = getSitePref('PP_API_ExpressCheckoutSolutionType').getValue();
+	prefs.PP_Landing_Page = getSitePref('PP_API_ExpressCheckoutLandingPage').getValue();
+	prefs.PP_Billing_type = getSitePref('PP_API_BillingAgreementType').getValue();
+	prefs.PP_API_BillingAgreementDescription = getSitePref('PP_API_BillingAgreementDescription');
+	prefs.PP_API_BillingAgreementPaymentType = getSitePref('PP_API_BillingAgreementPaymentType').getValue();
+	prefs.PP_API_ReferenceTransactionPaymentAction = getSitePref('PP_API_ReferenceTransactionPaymentAction').getValue();
+	prefs.PP_BillingAgreementState = getSitePref('PP_BillingAgreementState').getValue();
+	prefs.PP_API_Easy_Payment = getSitePref('PP_EnableEasyPayments');
+	prefs.PP_LogIpnNotifications = getSitePref('PP_LogIpnNotifications');
+	prefs.PP_API_Signature = getSitePref('PP_API_Signature');
+	prefs.PP_IPN_Timeout = getSitePref('PP_Timeout');
+	prefs.PP_MultipleCapture = getSitePref('PP_MultipleCapture');
+	prefs.PP_IncontextButtonIds = getSitePref('PP_IncontextButtonIds');
+
+
+	//Hardcoded values that may not be configured in BM:
+	prefs.PP_API_VERSION = '121.0';
+	prefs.PP_API_ButtonSource = 'Demandware_Ecom_2015';
+	prefs.PP_SignatureCredentialsIDs = ['PayPal_Sandbox_Signature_Credentials' + '_' + system.Site.getCurrent().ID, 'PayPal_Production_Signature_Credentials' + '_' + system.Site.getCurrent().ID];
+	prefs.PP_SandboxCredentialsIDs = ['PayPal_Sandbox_Signature_Credentials' + '_' + system.Site.getCurrent().ID, 'PayPal_Sandbox_Certificate_Credentials' + '_' + system.Site.getCurrent().ID];
+
+	//cancel urls and service name
+	prefs.paypalCancelUrl = dw.web.URLUtils.https(dw.web.Resource.msg('paypal.cancelpipeline', 'preferences', 'COBilling-Start'));
+	prefs.paypalFromCartCancelUrl = dw.web.URLUtils.https(dw.web.Resource.msg('paypal.onexpressfromcarterror', 'preferences', 'Cart-Show'));
+
+	prefs.initialNvpServiceName = 'int_paypal.http.nvp.payment.PayPal';
+	prefs.nvpServiceName = prefs.initialNvpServiceName + '.' + system.Site.getCurrent().ID;
+
+	//create url depend on credentials type (Sandbox or Production)
+	try {
+		var nvpService = svc.ServiceRegistry.get(prefs.nvpServiceName);
+	} catch (error) {
+		system.Logger.error('Service "' + prefs.nvpServiceName + '" is not configured. Need to create the service in BM > Administration > Operations > Services');
+		return prefs;
+	}
+
+	var credentialID : String = nvpService.getCredentialID();
+	var isUseSandboxUrls : Boolean = prefs.PP_SandboxCredentialsIDs.indexOf(credentialID) != -1 ? true : false;
+
+	prefs.paypalEndpoint = isUseSandboxUrls ? "https://www.sandbox.paypal.com/cgi-bin/webscr" : "https://www.paypal.com/cgi-bin/webscr";
+	prefs.incontextUrl = isUseSandboxUrls ? "https://www.sandbox.paypal.com/checkoutnow" : "https://www.paypal.com/checkoutnow";
+	prefs.easyPaymentUrl = isUseSandboxUrls ? "https://www.sandbox.paypal.com/checkoutnow/2" : "https://www.paypal.com/checkoutnow/2";
+	prefs.incontextEnvironment = isUseSandboxUrls ? 'sandbox' : 'production';
+
+	//Paypal API method definitions:
+
+	prefs.api = {
+		SetExpressCheckout: {
+			method: 'SetExpressCheckout',
+			logCategory : 'PayPal_SetExpress'
+		},
+		GetTransactionDetails: {
+			method: 'GetTransactionDetails',
+			logCategory : 'PayPal_GetTranDet'
+		},
+		GetExpressCheckoutDetails: {
+			method: 'GetExpressCheckoutDetails',
+			logCategory : 'PayPal_GetExpr'
+		},
+		DoExpressCheckoutPayment: {
+			method: 'DoExpressCheckoutPayment',
+			logCategory : 'PayPal_DoExpr'
+		},
+		DoDirectPayment: {
+			method: 'DoDirectPayment',
+			logCategory : 'PayPal_DoDirPay'
+		},
+		DoAuthorization: {
+			method: 'DoAuthorization',
+			logCategory : 'PayPal_DoAuth'
+		},
+		DoCapture: {
+			method: 'DoCapture',
+			logCategory : 'PayPal_DoCapture'
+		},
+		DoReauthorization: {
+			method: 'DoReauthorization',
+			logCategory : 'PayPal_DoReAuth'
+		},
+		DoVoid: {
+			method: 'DoVoid',
+			logCategory : 'PayPal_DoVoid'
+		},
+		RefundTransaction: {
+			method: 'RefundTransaction',
+			logCategory : 'PayPal_RefTran'
+		},
+		DoReferenceTransaction: {
+			method: 'DoReferenceTransaction',
+			logCategory : 'PayPal_ReferenceTr'
+		},
+		TransactionSearch: {
+			method: 'TransactionSearch',
+			logCategory : 'PayPal_TransactionSearch'
+		},
+		BillAgreementUpdate: {
+			method: 'BillAgreementUpdate',
+			logCategory : 'PayPal_BillAgreementUpdate'
+		}
+	};
+
+
+	prefs.getMethodPreferences = function (method : String) : Object {
+		var methodPreferences : Object = null;
+		if (!empty(prefs.api[method])) {
+			methodPreferences = prefs.api[method];
+		}
+		return methodPreferences;
+	};
+
+	return prefs;
+}
+
+
+module.exports = getPreferences();

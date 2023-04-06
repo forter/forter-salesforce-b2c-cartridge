@@ -1,0 +1,27 @@
+/**
+* Call forter authentication attempt.
+*
+* @input EventType : String
+* @input forterDecision : String
+*/
+
+function execute(args) {
+    var ForterLogger = require('*/cartridge/scripts/lib/forter/ForterLogger');
+    var forterConstants = require('*/cartridge/scripts/lib/forter/forterConstants');    
+    var log = new ForterLogger('ForterCallAuthenticationAttempt.ds');
+
+    try {
+    	if (args.forterDecision == forterConstants.STATUS_VERIFICATION_REQ) {
+	        var argAuthenticationAttemptUpdate = {
+	            EventType: forterConstants.CUSTOMER_AUTH_ATTEMPT
+	        };
+	        var forterAuthAttempCall = require('*/cartridge/scripts/pipelets/forter/ForterAuthenticationAttemptUpdate');
+	        forterAuthAttempCall.execute(argAuthenticationAttemptUpdate);    	
+    	}
+    } catch (e) {
+        log.error(e);
+        return PIPELET_ERROR;
+    }
+
+    return PIPELET_NEXT;
+}

@@ -1,0 +1,26 @@
+/**
+ * Updates PaymentIntrument by form data. This functionality was extended to script to support SG v100+
+ *
+ * @input CreditCardForm : Object Credit Card Form Object
+ * @input PaymentInstrument : dw.order.PaymentInstrument Ppayment instrument to update
+ */
+importPackage( dw.system );
+
+
+function execute( pdict : PipelineDictionary ) : Number {
+	var paymentInstrument : dw.order.OrderPaymentInstrument = pdict.PaymentInstrument;
+	var form : Object = pdict.CreditCardForm;
+
+	paymentInstrument.setCreditCardHolder(form.owner.value);
+	paymentInstrument.setCreditCardNumber(form.number.value);
+	paymentInstrument.setCreditCardType(form.type.value);
+
+	//Workaround for SiteGenesis changes to expiration form fields
+	var expirationMonth : Object = form.expiration ? form.expiration.month.value : form.month.value;
+	var expirationYear : Object = form.expiration ? form.expiration.year.value : form.year.value;
+
+	paymentInstrument.setCreditCardExpirationMonth(expirationMonth);
+	paymentInstrument.setCreditCardExpirationYear(expirationYear);
+
+	return PIPELET_NEXT;
+}

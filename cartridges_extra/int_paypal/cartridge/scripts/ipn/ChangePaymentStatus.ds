@@ -1,0 +1,64 @@
+/**
+*	Change Payment Status and paypal payment status
+*
+*	@input Order : dw.order.Order Order object which should be updated
+*	@input PaymentStatus : String Payment status from GetTransactionDetails
+*
+*/
+
+var system : Object = require('dw/system');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+
+var logger : system.Log = paypalHelper.getLogger('IPN');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var order : dw.order.Order = args.Order;
+	var status : String = args.PaymentStatus;
+	var paymentInstrument : dw.order.OrderPaymentInstrument = paypalHelper.getPaypalExpressPaymentInstrument(order);
+	var paymentStatus : Number = getPaypalPaymentStatus(status);
+
+	try {
+		
+		if (!paymentInstrument) {
+			throw new Error('Can not find PayPal Express payment instrument in the order');
+		}
+		
+		paymentInstrument.custom.paypalPaymentStatus = status;
+
+		//If only PayPal payment instrument was used we can be sure that order can be syncronized with PayPal's payment status
+		if (order.getPaymentInstruments().size() == 1) {
+			order.setPaymentStatus(paymentStatus);
+		}
+
+	} catch (error) {
+		logger.error(error.toString());
+		return PIPELET_NEXT;
+	}
+
+	return PIPELET_NEXT;
+}
+
+/**
+ * getPaypalPaymentStatus() returns payment status, depending on the paypal API call response
+ *
+ * @param status {String} payment status from paypal API call response
+ * @returns {Number} order status in dw.order.Order format
+ */
+function getPaypalPaymentStatus(status : String) : Number {
+
+	var paid : Array = ['Completed']; //values of the response, that will be treated as "Paid" order status
+	var partiallyPaid : Array = ['Partially_Refunded'];//values of the response, that will be treated as "Partially Paid" order status
+
+	var paymentStatus : Number = null;
+
+	if (paid.indexOf(status) != -1) {
+		paymentStatus = dw.order.Order.PAYMENT_STATUS_PAID;
+	} else if (partiallyPaid.indexOf(status) != -1) {
+		paymentStatus = dw.order.Order.PAYMENT_STATUS_PARTPAID;
+	} else {
+		paymentStatus = dw.order.Order.PAYMENT_STATUS_NOTPAID;
+	}
+
+	return paymentStatus;
+}

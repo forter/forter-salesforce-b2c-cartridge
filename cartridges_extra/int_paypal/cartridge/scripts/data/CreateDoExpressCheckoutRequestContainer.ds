@@ -1,0 +1,33 @@
+/**
+*	Creates data for DoExpressCheckout API call
+*
+*	@input LineItemContainer : Object LineIteam Container (Basket or Order)
+*
+*	@output DoExpressCheckoutRequestData : Object Data prepaired for request {method : {String}, data : {Object}}
+*/
+
+var order : Object = require('dw/order');
+var util : Object = require('dw/util');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+var logger : Object = paypalHelper.getLogger();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var lineItemContainer : order.LineItemCtnr = args.LineItemContainer;
+	var paypalPaymentInstrument : order.OrderPaymentInstrument = paypalHelper.getPaypalExpressPaymentInstrument(lineItemContainer);
+
+	if (empty(paypalPaymentInstrument)) {
+		var error : Object = new Error('No PayPal payment instrument found in Order');
+		logger.error(error);
+		throw error;
+	}
+
+	//Collect required data for SetExpressRequest
+	args.DoExpressCheckoutRequestData = {
+		method : prefs.api.DoExpressCheckoutPayment.method,
+		data : paypalHelper.createDoExpressCheckoutRequestData(lineItemContainer, paypalPaymentInstrument)
+	};
+
+	return PIPELET_NEXT;
+}

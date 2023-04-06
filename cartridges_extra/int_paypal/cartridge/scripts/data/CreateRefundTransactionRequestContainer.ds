@@ -1,0 +1,34 @@
+/**
+*	Creates data for RefundTransaction API call
+*
+*	@input TRANSACTIONID : String The transaction ID of the transaction be refunded.
+*	@input REFUNDTYPE : String Specifies whether you want to process a full refund or a partial refund.
+*	@input AMT : String The amount to refund.
+*	@input RETRYUNTIL : String Maximum time until you must retry the refund.
+*	@input REFUNDSOURCE : String Type of PayPal funding source .
+*	@input INVOICEID : String Your own invoice or tracking ID number.
+*
+*	@output RefundTransactionRequestContainer : Object Data prepaired for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : dw.util.HashMap = new dw.util.HashMap();
+
+	data.put('TRANSACTIONID', args.TRANSACTIONID);
+	data.put('REFUNDTYPE', args.REFUNDTYPE);
+	data.put('AMT', args.AMT);
+	data.put('RETRYUNTIL', args.RETRYUNTIL);
+	data.put('REFUNDSOURCE', args.REFUNDSOURCE);
+	data.put('INVOICEID', args.INVOICEID);
+
+	args.RefundTransactionRequestContainer = {
+		method : prefs.api.RefundTransaction.method,
+		data : data
+	}
+
+	return PIPELET_NEXT;
+}

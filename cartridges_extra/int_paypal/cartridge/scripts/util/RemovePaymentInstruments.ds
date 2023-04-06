@@ -1,0 +1,21 @@
+/**
+*	Removes a payment instruments before checkout from from the basket.
+*
+*	@input Basket : dw.order.Basket The basket.
+*/
+
+var util : Object = require('dw/util');
+var order : Object = require('dw/order');
+
+function execute( pdict : PipelineDictionary ) : Number {
+
+	var basket : order.Basket = pdict.Basket;
+
+	var paymentInstruments : util.Collection = basket.getPaymentInstruments();
+
+	for each (let instument in paymentInstruments) {
+		basket.removePaymentInstrument(instument);
+	}
+
+	return PIPELET_NEXT;
+}

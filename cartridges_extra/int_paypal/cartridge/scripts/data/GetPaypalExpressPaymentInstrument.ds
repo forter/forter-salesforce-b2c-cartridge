@@ -1,0 +1,16 @@
+/**
+*	Get PayPal payment instrument
+*
+*	@input LineItemContainer : dw.order.LineItemCtnr
+*	@output PaymentInstrument : dw.order.OrderPaymentInstrument
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	args.PaymentInstrument = paypalHelper.getPaypalExpressPaymentInstrument(args.LineItemContainer);
+
+	return PIPELET_NEXT;
+}
