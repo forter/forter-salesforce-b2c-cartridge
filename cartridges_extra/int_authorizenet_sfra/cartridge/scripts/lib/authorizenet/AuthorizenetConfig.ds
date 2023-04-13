@@ -1,0 +1,34 @@
+var AuthorizenetLogger = require('int_authorizenet_controllers/cartridge/scripts/lib/authorizenet/AuthorizenetLogger.ds');
+
+/**
+ * AuthorizenetConfig object contains all configuration data,
+ * which are used to call and use the Authorize service.
+ * This data is retrieved from custom site preferences.
+ *
+ * To include this script use:
+ * var config = require('int_authorizenet_sfra/cartridge/scripts/lib/authorizenet/AuthorizenetConfig.ds').AuthorizenetConfig;
+ */
+function AuthorizenetConfig() {
+    this.authorizenetLogger = new AuthorizenetLogger("AuthorizenetConfig.ds");
+    this.name               = this.getSitePreference("authorizenetName");
+    this.transactionKey     = this.getSitePreference("authorizenetTransactionKey");
+}
+
+/**
+ * Load custom site preference.
+ */
+AuthorizenetConfig.prototype.getSitePreference = function(preference: String): String {
+    var result = null;
+        result = dw.system.Site.getCurrent().getCustomPreferenceValue(preference);
+
+    if (empty(result)) {
+        result = '';
+        this.authorizenetLogger.debug("Authorizenet Site specific custom preference '" + preference + "' is missing.");
+    }
+
+    return result;
+}
+
+Object.freeze(AuthorizenetConfig);
+
+module.exports.AuthorizenetConfig = new AuthorizenetConfig();

@@ -1,0 +1,27 @@
+/**
+*	Creates data for DoAuthorization API call
+*
+*	@input TRANSACTIONID : String The PayPal order ID of the order ID that you wish to authorize against.
+*	@input AMT : String Amount to authorize
+*	@input CURRENCYCODE : String Transaction currency
+*
+*	@output DoAuthorizationRequestContainer : Object Data prepaired for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	args.DoAuthorizationRequestContainer = {
+		method : prefs.api.DoAuthorization.method,
+		data : {
+			'TRANSACTIONID' : args.TRANSACTIONID,
+			'AMT' : args.AMT,
+			'CURRENCYCODE' : args.CURRENCYCODE
+		}
+	};
+
+	return PIPELET_NEXT;
+}
+

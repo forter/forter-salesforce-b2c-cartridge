@@ -1,0 +1,34 @@
+/**
+*	Prepares data for API call
+*
+*	@input MethodName : String Paypal API method. All list is present in modules/utils/Preferences.ds
+*	@input MethodData : Object The data which needs to send
+*
+*	@output RequestData : Object Data prepaired for request {method : String, data : Object}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : dw.util.HashMap = new dw.util.HashMap(),
+		property : String;
+
+	if(!prefs.api[args.MethodName]) {
+		return PIPELET_ERROR;
+	}
+
+	for(property in args.MethodData) {
+		if(property != 'methodName'){
+			data.put(property.toUpperCase(), args.MethodData[property].toString());
+		}		
+	}
+
+	args.RequestData = {
+		method : prefs.api[args.MethodName].method,
+		data : data
+	};
+
+	return PIPELET_NEXT;
+}

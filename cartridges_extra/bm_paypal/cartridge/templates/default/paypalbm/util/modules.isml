@@ -1,0 +1,5 @@
+<ismodule template = "paypalbm/components/pagination"
+	name="paypalpagination"
+	attribute="pageurl"
+	attribute="pagingmodel"
+/>

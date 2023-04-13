@@ -1,0 +1,140 @@
+<isdecorate template="application/MenuFrame">
+	<iscontent type="text/html" charset="UTF-8">
+	<isinclude template="inc/Modules">
+	<isinclude template="util/modules"/>
+	<link rel="stylesheet" href="${dw.web.URLUtils.staticURL('/css/orders.css')}" />
+
+	<!-- Page Navigator -->
+	<isbreadcrumb name1="${pdict.MAIN_MENU_NAME}" url1="${pdict.TOP_URL.toString()}" name2="Order">
+	<!-- EO Page Navigator -->
+	<div class="overview_title">${dw.web.Resource.msg('forter_bm.configuration.overviewtitle.order','forter_bm',null)}</div>
+	<div class="overview_title_description">${dw.web.Resource.msg('forter_bm.configuration.orders.description','forter_bm',null)}</div>
+
+	<table class="forter-orders-table" width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tbody>
+			<tr>
+				<td colspan="10">
+					<form action="${dw.web.URLUtils.https('ForterExtension-Order')}" method="post" name="${pdict.CurrentForms.fortersearchorder.dynamicHtmlName}" id="forter-search">
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.orderID}" type="input"/>
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.customerName}" type="input"/>
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.email}" type="input"/>
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.status}" type="select"/>
+						<br/>
+
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.startDate}" rowClass="start-date" type="input"/>
+						<input type="button" id="start-date" value="..." class="button date" />
+						<script>
+							Calendar.setup({
+								inputField: "dwfrm_fortersearchorder_startDate", // ID of the input field
+								ifFormat: "%m/%d/%Y",
+								button: "start-date" // ID of the button
+							});
+						</script>
+
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.endDate}" rowClass="end-date" type="input"/>
+						<input type="button" id="end-date" value="..." class="button date" />
+						<script>
+							Calendar.setup({
+								inputField: "dwfrm_fortersearchorder_endDate", // ID of the input field
+								ifFormat: "%m/%d/%Y",
+								button: "end-date" // ID of the button
+							});
+						</script>
+
+						<isinputfield formfield="${pdict.CurrentForms.fortersearchorder.forterSearchDecision}" rowClass="forter-decision" type="select"/>
+						<input id="search" class="button" type="submit" value="Find" name="${pdict.CurrentForms.fortersearchorder.search.htmlName}" />
+					</form>
+				</td>
+			</tr>
+			<isif condition="${pdict.OrderPagingModel.empty}">
+				<tr>
+					<td class="no_orders"><isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.no','forter_bm',null)}" /></td>
+				</tr
+			<iselse/>
+			<tr>
+				<td colspan="5" class="table_title_description">${dw.web.Resource.msg('forter_bm.configuration.orders.asterisk','forter_bm',null)}</td>
+			</tr>
+			<tr>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.number','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.order.date','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.created.by','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.registration.status','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.customer','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.customer.email','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.forter.decision','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s forter-url">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.forter.url','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.total','forter_bm',null)}" />
+				</td>
+				<td class="table_header n w e s">
+					<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.status','forter_bm',null)}" />
+				</td>
+			</tr>
+			<isloop items="${pdict.OrderPagingModel.pageElements}" var="orderListResult" status="orderloopstate">
+				<tr>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<a class="table_detail_link" href="${dw.web.URLUtils.https('ViewOrder_52-FindByNumber', 'status', orderListResult.status.displayValue.toLowerCase()).append('OrderID', orderListResult.UUID)}"><isprint value="${orderListResult.orderNo}" encoding="on"/></a>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isprint value="${StringUtils.formatCalendar(new dw.util.Calendar(orderListResult.creationDate), pdict.CurrentRequest.locale, dw.util.Calendar.INPUT_DATE_TIME_PATTERN)}" encoding="on"/>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isprint value="${orderListResult.createdBy}" encoding="on"/>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isif condition="${orderListResult.getCustomer().registered}">
+							<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.registration.status.registered','forter_bm',null)}" />
+						<iselse>
+							<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.registration.status.unregistered','forter_bm',null)}"/>
+						</isif>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isprint value="${orderListResult.customerName}" encoding="on"/>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isprint value="${orderListResult.customerEmail}" encoding="on"/>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isif condition="${(orderListResult.custom.forterDecision.value == null) || empty(orderListResult.custom.forterDecision.value)}">
+							<isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.forter.decision.not.sent','forter_bm',null)}" />
+						<iselse>
+							<isprint value="${orderListResult.custom.forterDecision}" encoding="on"/>
+						</isif>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isif condition="${(orderListResult.custom.forterOrderLink != null) || !empty(orderListResult.custom.forterOrderLink)}">
+							<a class="table_detail_link" target="_blank" href="${orderListResult.custom.forterOrderLink}"><isprint value="${dw.web.Resource.msg('forter_bm.configuration.orders.forter.url.vieworder','forter_bm',null)}" encoding="on"/></a>
+						</isif>
+					</td>
+					<td class="table_detail w e s" nowrap="nowrap">
+						<isprint value="${orderListResult.getTotalGrossPrice()}" encoding="on"/>
+					</td>
+					<td class="table_detail w e s forter-order-status" nowrap="nowrap">
+						<isprint value="${orderListResult.status}" encoding="on"/>
+					</td>
+				</tr>
+			</isloop>
+		</isif>
+		</tbody>
+	</table>
+
+	<div class="pagination">
+		<ispagingbar pageurl="${dw.web.URLUtils.https('ForterExtension-Order')}" pagingmodel="${pdict.OrderPagingModel}" formid="forter-search" params="${pdict.CurrentHttpParameterMap}" />
+	</div>
+</isdecorate>

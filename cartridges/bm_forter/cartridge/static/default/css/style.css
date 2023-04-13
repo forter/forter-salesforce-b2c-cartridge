@@ -1,0 +1,384 @@
+@CHARSET "UTF-8";
+.fielditem2, .value, .infobox_item {
+    display: none;
+}
+
+.main-table {
+    width: 70.0rem;
+}
+
+tr, td {
+    width: 100%;
+    display: block;
+}
+
+.forter-logo {
+    display: block;
+    margin: auto;
+}
+
+.forter-confirmation {
+    text-align: center;
+}
+
+.forter-confirmation-img {
+    vertical-align: text-bottom;
+}
+
+.forter-logo-text {
+    display: inline-block;
+    font-size: 1.9rem;
+}
+
+.forter-heading {
+    font-size: 2.2rem;
+    color: #3B4A4E;
+    border-top: 0.1rem solid #D5D5D5;
+    padding-top: 1.5rem;
+}
+
+.forter-text {
+    font-size: 2.0rem;
+    color: #28363A;
+    min-width: 24%;
+    display: inline-block;
+}
+
+#decline-decision-label {
+    display: initial;
+}
+
+.forter-check-box .labelForCheckbox.disabled-checkbox {
+    background: #E0E0E0;
+}
+
+.forter-check-box {
+    margin: 0;
+    width: 2.0rem;
+    height: 2.0rem;
+    background: white;
+    position: relative;
+    display: inline-block;
+    border: 0.1rem solid #838D8F;
+}
+
+.forter-check-box .labelForCheckbox {
+    cursor: pointer;
+    position: absolute;
+    width: 2.0rem;
+    height: 2.0rem;
+    left: -0.4rem;
+    top: 0;
+    background: white;
+}
+
+.forter-check-box .labelForCheckbox:after {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: alpha(opacity=0);
+    opacity: 0;
+    content: '';
+    position: absolute;
+    width: 0.9rem;
+    height: 0.5rem;
+    background: transparent;
+    top: 0.4rem;
+    left: 0.4rem;
+    border: 0.3rem solid #fcfff4;
+    border-top: none;
+    border-right: none;
+
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+
+    box-sizing: content-box;
+}
+
+.forter-check-box #declineDecision[type=checkbox]:checked + .labelForCheckbox:after,
+.forter-check-box #autoInvoice[type=checkbox]:checked + .labelForCheckbox:after,
+.forter-check-box #cancelOrder[type=checkbox]:checked + .labelForCheckbox:after {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    filter: alpha(opacity=100);
+    opacity: 1;
+}
+
+.forter-check-box #declineDecision[type=checkbox]:checked + .labelForCheckbox,
+.forter-check-box #autoInvoice[type=checkbox]:checked + .labelForCheckbox,
+.forter-check-box #cancelOrder[type=checkbox]:checked + .labelForCheckbox {
+    background: #007CBF;
+}
+
+.forter-input {
+    width: 73%;
+    height: 3.0rem;
+    padding: 0 0.5rem;
+    border: 0.1rem solid #D5D5D5;
+}
+
+.forter-text.declined-message {
+    border: 0.1rem solid #D5D5D5;
+    min-height: 13.0rem;
+    padding: 1.5rem 1.0rem;
+    width: 97%
+}
+
+.forter-button {
+    float: right;
+    padding: 1.0rem 5.0rem;
+    margin-top: 2.0rem;
+    font-size: 1.8rem;
+    color: #ffffff;
+    background-color: #82C234;
+    border: 0.1rem solid #68A81A;
+    cursor: pointer;
+}
+
+.sub-check-box {
+    padding-left: 2.5rem;
+}
+
+.switch-container {
+    display: inline-block;
+    float: right;
+}
+
+.switch-yes {
+    color: #E0E0E0;
+    position: absolute;
+    top: -0.8rem;
+    left: -4.4rem;
+}
+
+.switch-no {
+    color: #6E7D81;
+    position: absolute;
+    top: -0.8rem;
+    right: -3.8rem;
+}
+
+.switch-yes, .switch-no {
+    font-size: 2.0rem;
+    cursor: pointer;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 4.0rem;
+    height: 1.5rem;
+    border-radius: 1.8rem;
+    cursor: pointer;
+    left: -4.0rem;
+    vertical-align: bottom;
+}
+
+.switch-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.switch-label {
+    position: relative;
+    display: block;
+    height: inherit;
+    border-radius: inherit;
+}
+
+.switch-label:before, .switch-label:after {
+    position: absolute;
+    top: 50%;
+    margin-top: -.5em;
+    line-height: 1;
+    -webkit-transition: inherit;
+    -moz-transition: inherit;
+    -o-transition: inherit;
+    transition: inherit;
+}
+
+.switch-label:before {
+    content: "";
+    right: 1.1rem;
+    color: #aaaaaa;
+}
+
+.switch-label:after {
+    content: "";
+    left: 1.1rem;
+    color: #FFFFFF;
+    opacity: 0;
+}
+
+.switch-input:checked ~ .switch-label:before {
+    opacity: 0;
+}
+
+.switch-input:checked ~ .switch-label:after {
+    opacity: 1;
+}
+
+.switch-handle {
+    position: absolute;
+    top: -0.7rem;
+    left: 2.0rem;
+    width: 2.0rem;
+    height: 2.0rem;
+}
+
+.switch-handle:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -0.6rem 0 0 -0.6rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    background: linear-gradient(to bottom, #6E7D81, #6E7D81);
+    background-image: -webkit-linear-gradient(top, #6E7D81, #6E7D81);
+    border-radius: 1.1rem;
+}
+
+.switch-input:checked ~ .switch-handle {
+    left: -0.7rem;
+}
+
+.switch-input:checked ~ .switch-handle:before {
+    background: linear-gradient(to bottom, #007CBF, #007CBF);
+    background-image: -webkit-linear-gradient(top, #007CBF, #007CBF);
+}
+
+.switch-input:checked ~ .switch-yes {
+    color: #007CBF;
+}
+
+.switch-input:checked ~ .switch-no {
+    color: #E0E0E0;
+}
+
+.switch-label, .switch-handle {
+    transition: All 0.3s ease;
+    -webkit-transition: All 0.3s ease;
+    -moz-transition: All 0.3s ease;
+    -o-transition: All 0.3s ease;
+}
+
+.switch-left-right .switch-label {
+    overflow: hidden;
+}
+
+.switch-left-right .switch-label:before, .switch-left-right .switch-label:after {
+    width: 2.0rem;
+    top: 0.4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.switch-left-right .switch-label:before {
+    background: #E0E0E0;
+    padding-left: 4.0rem;
+}
+
+.switch-left-right .switch-label:after {
+    background: #E0E0E0;
+    left: 0;
+    opacity: 1;
+    width: 100%;
+}
+
+.switch-left-right .switch-input:checked ~ .switch-label:before {
+    opacity: 1;
+}
+
+.switch-left-right .switch-input:checked ~ .switch-label:after {
+    left: -4.0rem;
+}
+
+.switch-left-right .switch-input:checked ~ .switch-label {
+    background: inherit;
+}
+
+.forter-error-message {
+    top: 2.0rem;
+    position: relative;
+    color: #FF0000;
+    float: left;
+    padding-right: 1.0rem;
+}
+
+.forter-info-message {
+    top: 2.0rem;
+    position: relative;
+    color: #00BF00;
+    display: none;
+    float: right;
+}
+
+.l-actions-container {
+    clear: left;
+    float: left;
+}
+
+.r-actions-container {
+    clear: right;
+    float: right;
+}
+
+.change-api-credentials-link-container {
+    top: 2.5rem;
+    position: relative;
+    font-size: 2.1rem;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.waiting {
+    position: fixed;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: gray;
+    opacity: 0.5;
+    right: 0;
+}
+
+.waiting .container {
+    margin: auto;
+    width: 12.8rem;
+    height: 12.8rem;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    border-radius: 2.0rem;
+    border-width: 0;
+    border-style: solid;
+    overflow: hidden;
+}
+
+.error-button-container {
+    float: right;
+}
+
+.forter-week-area {
+    display: block;
+    vertical-align: top;
+}
+
+.forter-week-row {
+    display: inline;
+    width: 1.0rem;
+}
+
+.forter-week-div {
+    display: inline;
+}
+
+.forter-week-select {
+    min-width: 5.0rem;
+}

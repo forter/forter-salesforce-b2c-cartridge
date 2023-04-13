@@ -1,0 +1,24 @@
+/**
+* Call forter customer info update functionality.
+*
+* @input EventType : String
+* @output forterDecision: String
+*/
+
+function execute(args) {
+    var ForterLogger = require('*/cartridge/scripts/lib/forter/ForterLogger');    
+    var log = new ForterLogger('ForterCallCustomerUpdate.ds');
+
+    try {
+        var argCustomerUpdate = {
+            EventType: args.EventType
+        };
+        var forterCall = require('*/cartridge/scripts/pipelets/forter/ForterCustomerUpdate');
+        args.forterDecision = forterCall.execute(argCustomerUpdate).forterDecision;
+    } catch (e) {
+        log.error(e);
+        return PIPELET_ERROR;
+    }
+
+    return PIPELET_NEXT;
+}

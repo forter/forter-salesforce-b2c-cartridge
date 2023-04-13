@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+	<list formid="items">
+		<field formid="public" label="wishlist.makepublic"  type="boolean" binding="public" />
+		<field formid="quantity" label="wishlist.quantitydesired"  type="integer"
+			binding="quantityValue"
+			min-length="1"
+			max-length="5"
+			missing-error="giftregistry.items.quantity.missing-error"
+			parse-error="giftregistry.items.quantity.parse-error"
+			value-error="giftregistry.items.quantity.value-error"
+			/>
+
+		<field formid="priority" label="wishlist.priority" type="integer" mandatory="false" binding="priority"
+			missing-error="forms.wishlist.items.priority.missing-error">
+			<options>
+				<option optionid="0" label="productlist.priority0" value="0"/>
+				<option optionid="1" label="productlist.priority1" value="1"/>
+				<option optionid="2" label="productlist.priority2" value="2"/>
+				<option optionid="3" label="productlist.priority3" value="3"/>
+				<option optionid="4" label="productlist.priority4" value="4"/>
+				<option optionid="5" label="productlist.priority5" value="5"/>
+			</options>
+		</field>
+		<action formid="addToCart" valid-form="false"/>
+	</list>
+
+	<list formid="productlists">
+		<!-- contains only links and no actions -->
+	</list>
+
+	<group formid="search">
+		<field formid="lastname" type="string" label="wishlist.lname" regexp="[^*?]*"/>
+		<field formid="firstname" type="string" label="wishlist.fname" regexp="[^*?]*"/>
+		<field formid="email" type="string" label="resource.email"/>
+		<action formid="search" valid-form="false"/>
+	</group>
+
+	<group formid="send">
+		<field formid="email" label="wishlist.sendto.email" type="string" mandatory="true" regexp="^[a-zA-Z0-9_\-\.]+@([a-zA-Z0-9_\-]+\.)+[a-zA-Z][a-zA-Z]+(\s*[,;]\s*([a-zA-Z0-9_\-\.]+@([a-zA-Z0-9_\-]+\.)+[a-zA-Z][a-zA-Z]+))*$"
+			   parse-error="wishlist.validemail"
+			   value-error="wishlist.check.emailaddress"
+			   missing-error="wishlist.enter.validemail"/>
+		<action formid="send" valid-form="true" label="resource.send"/>
+	</group>
+</form>

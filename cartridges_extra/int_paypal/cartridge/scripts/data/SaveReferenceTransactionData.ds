@@ -1,0 +1,35 @@
+/**
+*	Save result of DoReferenceTransaction API call and update order data
+*
+*	@input Data : Object transaction data
+*	@input Order : dw.order.LineItemCtnr order object
+*	@input PaymentInstrument : dw.order.OrderPaymentInstrument current payment instrument
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var data : Object = args.Data;
+	var order : dw.order.LineItemCtnr = args.Order;
+	var paymentInstrument : dw.order.OrderPaymentInstrument = args.PaymentInstrument;
+	var paymentTransaction : dw.order.PaymentTransaction = paymentInstrument.getPaymentTransaction();
+
+	var orderPaymentInstruments : dw.util.Collection = order.getPaymentInstruments();
+	var paymentInstrumentsIsOnlyPaypal = orderPaymentInstruments.size() === 1 && orderPaymentInstruments[0].getPaymentMethod() === 'PayPal';
+
+	paymentTransaction.setTransactionID(data.transactionid);
+	paymentTransaction.setAmount(new dw.value.Money(parseFloat(data.amt), data.currencycode));
+	paymentTransaction.custom.transactionsHistory = [data.transactionid];
+
+	paymentInstrument.custom.paypalPaymentStatus = data.paymentstatus;
+	paymentInstrument.custom.paypalCorrelationId = data.correlationid;
+
+	if (data.paymentstatus === 'Completed' && paymentInstrumentsIsOnlyPaypal) {
+		order.setPaymentStatus(dw.order.Order.PAYMENT_STATUS_PAID);
+	}
+
+	order.custom.paypalPaymentMethod = 'express';
+
+	return PIPELET_NEXT;
+}

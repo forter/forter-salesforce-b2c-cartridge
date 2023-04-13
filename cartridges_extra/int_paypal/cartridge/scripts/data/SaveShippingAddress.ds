@@ -1,0 +1,108 @@
+/**
+*	Save shipping address as default address for future PayPal transaction through Billing Agreement
+*
+*	@input Basket : dw.order.LineItemCtnr Order object dw.web.FormListItem
+*	@input ForceAddAddress : Boolean
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var logger : dw.system.Log = paypalHelper.getLogger();
+
+function execute( args : PipelineDictionary ) : Number {
+	
+	if(!customer.isAuthenticated()) {
+		return PIPELET_ERROR;
+	}
+
+	var addressBook : dw.customer.AddressBook = customer.profile.addressBook;
+	var usedAddress  : dw.order.OrderAddress = args.Basket.defaultShipment.shippingAddress;
+	var customerBillingAgreement : Object = paypalHelper.getCustomerBillingAgreement(customer);
+	
+	if(customerBillingAgreement.getDefaultShippingAddress() && !args.ForceAddAddress) {
+		 return PIPELET_NEXT;
+	}
+	
+	if(usedAddress == null) {
+		logger.debug('Cannot add address to address book, without given order address.');
+		return PIPELET_ERROR;
+	}
+	
+	var address : dw.customer.CustomerAddress = getEquivalentAddress(addressBook, usedAddress);
+
+	if(address == null) {
+		var addressID : String = determineUniqueAddressID(usedAddress.city, addressBook);
+	
+		if(empty(addressID)) {
+			logger.debug('Cannot add address to address book, with empty address ID.');
+			return PIPELET_ERROR;
+		}
+	
+		address = addressBook.createAddress(addressID);
+		address.setFirstName(usedAddress.firstName);
+		address.setLastName(usedAddress.lastName);
+		address.setAddress1(usedAddress.address1);
+		address.setAddress2(usedAddress.address2);
+		address.setCity(usedAddress.city);
+		address.setPostalCode(usedAddress.postalCode);
+		address.setStateCode(usedAddress.stateCode);
+		address.setCountryCode(usedAddress.countryCode.value);
+	}
+
+	address.setPhone(usedAddress.phone);
+	
+	for each(let item in addressBook.addresses) {
+		item.custom.isPaypalDefaultShippingAddress = false;
+	}
+	address.custom.isPaypalDefaultShippingAddress = true;
+	
+	
+    return PIPELET_NEXT;
+}
+
+/**
+*	Returns a possible equivalent address to the given order address from the 
+*	address book or null, if non equivalent address was found.
+*/
+function getEquivalentAddress(addressBook : dw.customer.AddressBook, orderAddress : dw.order.OrderAddress) : dw.customer.CustomerAddress {
+	var address : dw.customer.CustomerAddress = null;
+	for each(address in addressBook.addresses) {
+		if(address.isEquivalentAddress(orderAddress)) {
+			return address;
+		}
+	}
+	return null;
+}
+
+/**
+*	Determines a unique address ID for an address to be save the given
+*	address book. The function first checks the city as the candidate ID 
+*	or appends a counter to the city (if already used as address ID) and 
+*	checks the existence of the resulting ID candidate. If the resulting 
+*	ID is unique this ID is returned, if not the counter is incremented and
+*	checked again.
+*/
+function determineUniqueAddressID(city : String, addressBook : dw.customer.CustomerAddress) {
+	var counter : Number = 0;
+	var existingAddress : dw.customer.CustomerAddress = null;
+
+	if(city == null || empty(city)) {
+		logger.debug('Cannot determine unique address ID from non existing or not set attribute "city".');
+		return null;
+	}
+
+	var candidateID : String = city;
+
+	while(existingAddress == null) {
+		existingAddress = addressBook.getAddress(candidateID);
+		if(existingAddress != null) {
+			counter++;
+			candidateID = city + "-" + counter;
+			existingAddress = null;
+		} else {
+			return candidateID;
+		}
+	}
+
+	return null;
+}

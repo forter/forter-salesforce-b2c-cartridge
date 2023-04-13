@@ -1,0 +1,19 @@
+/**
+*	Creates data for GetTransactionDetalis API call
+*
+*	@input TransactionId : String PayPal transaction ID.
+*
+*	@output GetTransactionDetalisRequestContainer : Object Data prepaired for request {method : {String}, data : {Object}}
+*/
+
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	args.GetTransactionDetalisRequestContainer = {
+		method : prefs.api.GetTransactionDetails.method,
+		data : {TRANSACTIONID : args.TransactionId}
+	};
+
+	return PIPELET_NEXT;
+}

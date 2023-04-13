@@ -1,0 +1,51 @@
+<isif condition="${dw.order.PaymentMgr.getPaymentMethod('PayPal').getPaymentProcessor().getID() == 'PAYPAL_EXPRESS'}" >
+	<isscript>
+		var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+		var customerBillingAgreement : Object = paypalHelper.getCustomerBillingAgreement(pdict.CurrentCustomer);
+	</isscript>
+	
+	<isset name="site" value="${dw.system.Site.getCurrent()}" scope="page" />
+	
+	<isif condition="${pdict.Basket.custom.paypalTempExpressCheckoutEmail}">
+		<div class="paypal_selected_account_email form-indent"><b>${pdict.Basket.custom.paypalTempExpressCheckoutEmail}</b></div>
+		<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.paypal.useAnotherAccount}" type="checkbox" rowclass="label-inline form-indent"/>
+		<script>
+			document.getElementById('${pdict.CurrentForms.billing.paymentMethods.paypal.useAnotherAccount.htmlName}').checked = false;
+		</script>
+	</isif>
+	
+	<isif condition="${pdict.CurrentCustomer.authenticated && site.getCustomPreferenceValue('PP_BillingAgreementState') != 'DoNotCreate'}">
+	
+		<isif condition="${customerBillingAgreement.hasAnyBillingAgreement}">
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.paypal.useCustomerBillingAgreement}" type="checkbox" rowclass="label-inline form-indent" />
+			<isif condition="${site.getCustomPreferenceValue('PP_BillingAgreementState') == 'BuyersChoose'}">
+				<div id="paypalSaveBillingAgreementCheckboxWrap" style="display:${pdict.CurrentForms.billing.paymentMethods.paypal.useCustomerBillingAgreement.checked ? 'none' : 'block'}">
+					<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.paypal.saveBillingAgreement}" type="checkbox" rowclass="label-inline form-indent"/>
+				</div>
+			</isif>
+			<script>
+				(function() {
+					var useCheckbox = document.getElementById('${pdict.CurrentForms.billing.paymentMethods.paypal.useCustomerBillingAgreement.htmlName}');
+					var saveCheckbox = document.getElementById('${pdict.CurrentForms.billing.paymentMethods.paypal.saveBillingAgreement.htmlName}');
+					var saveCheckboxWrap = document.getElementById('paypalSaveBillingAgreementCheckboxWrap');
+					useCheckbox.onchange = function() {
+						if(saveCheckbox) {
+							saveCheckboxWrap.style.display = useCheckbox.checked ? 'none' : 'block';
+							saveCheckbox.checked = false;
+						}
+					}
+					useCheckbox.checked = ${customerBillingAgreement.isCheckedUseCheckbox};
+					useCheckbox.onchange();
+				})();
+			</script>
+		<iselse>
+			<isif condition="${site.getCustomPreferenceValue('PP_BillingAgreementState') == 'BuyersChoose'}">
+				<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.paypal.saveBillingAgreement}" type="checkbox" rowclass="label-inline form-indent"/>
+			</isif>
+		</isif>
+		
+		<div style="display:none"><isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.paypal.expressCheckoutSetForBillingAgreement}" type="checkbox" /></div>
+		
+	</isif>
+	
+</isif>

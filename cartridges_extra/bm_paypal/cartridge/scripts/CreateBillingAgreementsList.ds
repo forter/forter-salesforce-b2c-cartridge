@@ -1,0 +1,31 @@
+/**
+* Create data for billisg agreements table using customer profile data
+*
+*   @input Profiles : dw.util.Iterator Customers with billing agreement object
+*   @output BillingAgreements : dw.util.ArrayList Formatted data for table
+*
+*/
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var iter: Iterator = args.Profiles;
+	var billingAgeements: dw.util.ArrayList = new dw.util.ArrayList();
+	while (iter.hasNext()) {
+		let profile: dw.customer.Profile = iter.next();
+		let billingAgreementsList: Object = JSON.parse(profile.custom.paypalBillingAgreementData);
+		for each(let ba: Object in billingAgreementsList.items) {
+			let calendar : dw.util.Calendar = new dw.util.Calendar(new Date(Number(ba.time)));
+			let customer : Object = {
+				fullName: profile.getFirstName() + ' ' + profile.getLastName(),
+				customerNo: profile.getCustomerNo(),
+				baid: ba.id,
+				email: ba.email,
+				creationDate: dw.util.StringUtils.formatCalendar(calendar, 'M/dd/yy')
+			};	
+			billingAgeements.push(customer);
+		}
+	}
+	
+	args.BillingAgreements = billingAgeements;
+	return PIPELET_NEXT;
+}

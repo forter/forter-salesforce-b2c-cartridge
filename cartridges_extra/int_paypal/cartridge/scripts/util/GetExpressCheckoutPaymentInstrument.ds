@@ -1,0 +1,24 @@
+/**
+*	Get payment instrument from order
+*
+*	@input Order : dw.order.Order Order order object
+*
+*	@output PaypalExpressPaymentInstrument : dw.order.OrderPaymentInstrument PayPal Express Checkout Payment instrument
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+	var order : dw.order.Order = args.Order;
+
+	var paypalExpressPaymentInstrument : dw.order.OrderPaymentInstrument = paypalHelper.getPaypalExpressPaymentInstrument(order);
+
+	if (empty(paypalExpressPaymentInstrument)) {
+		return PIPELET_ERROR;
+	}
+
+	args.PaypalExpressPaymentInstrument = paypalExpressPaymentInstrument;
+
+	return PIPELET_NEXT;
+}

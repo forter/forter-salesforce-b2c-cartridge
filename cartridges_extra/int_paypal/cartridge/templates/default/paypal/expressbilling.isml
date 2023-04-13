@@ -1,0 +1,41 @@
+<isif condition="${dw.order.PaymentMgr.getPaymentMethod('PayPal').getPaymentProcessor().getID() == 'PAYPAL_EXPRESS' && !pdict.Basket.custom.paypalTempExpressCheckoutToken}" >
+	<isscript>
+		var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+		var site : dw.system.Site = dw.system.Site.getCurrent();
+		var merchantID : String = site.getCustomPreferenceValue('PP_Merchant_ID');
+		var incontext : Boolean = site.getCustomPreferenceValue('PP_EnableIncontextCheckout');
+	</isscript>
+	
+	<isif condition="${incontext}"> 
+		<script>
+			window.paypalCheckoutReady = function () {
+				var useBillingAgreementCheckbox = document.getElementById('${pdict.CurrentForms.billing.paymentMethods.paypal.useCustomerBillingAgreement.htmlName}');
+				paypal.checkout.setup('${merchantID}', {
+					button : '${billingFormSubmitButtonID}',
+					environment : '${prefs.incontextEnvironment}',
+					condition: function() {
+						var conditionResult = false;
+						if (typeof window.paypalBillingIncontextConditionHandle === 'function') {
+							conditionResult = window.paypalBillingIncontextConditionHandle();
+						} else {
+							var methodRadios = document.querySelectorAll('div.payment-method-options input');
+							for(var i = 0, len = methodRadios.length; i < len; i++) {
+								var radioInput = methodRadios[i];
+								if(radioInput.checked && radioInput.value == 'PayPal') {
+									conditionResult = true;
+									if(useBillingAgreementCheckbox) {
+										conditionResult = !useBillingAgreementCheckbox.checked;
+									}
+									break;
+								}
+							}
+							document.querySelectorAll('form.checkout-billing')[0].target = conditionResult ? '_blank' : '_self';
+						}
+						return conditionResult;
+					}
+				});
+			}
+		</script>
+		<script src="//www.paypalobjects.com/api/checkout.js" defer></script>
+	</isif>
+</isif>

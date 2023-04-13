@@ -1,0 +1,22 @@
+<isscript>
+	var site : dw.system.Site = dw.system.Site.getCurrent();
+	var publisherID : String = site.getCustomPreferenceValue('PP_Merchant_Publisher_ID');
+	var bannerSize : String = site.getCustomPreferenceValue('PP_CreditBannerWidth') + 'x' + site.getCustomPreferenceValue('PP_CreditBannerHeight');
+	var creditCampaign : String = site.getCustomPreferenceValue('PP_Credit_Campaign_ID');
+	var campaign : dw.campaign.Campaign = dw.campaign.PromotionMgr.getCampaign(creditCampaign);
+	var isActive : Boolean = campaign ? campaign.isActive() : false;
+</isscript>
+
+<isif condition="${isActive}" >
+	<div>
+		<script type="text/javascript" data-pp-pubid="${publisherID}" data-pp-placementtype="${bannerSize}">
+			(function (d, t) {
+				"use strict";
+				var s = d.getElementsByTagName(t)[0],
+					n = d.createElement(t);
+				n.src = "//paypal.adtag.where.com/merchant.js";
+				s.parentNode.insertBefore(n, s);
+			}(document, "script"));
+		</script>
+	</div>
+</isif>

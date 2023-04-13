@@ -1,0 +1,32 @@
+/**
+*	Update Customer billing agreement status in accordance of BAUpdate response
+*
+*	@input Data : Object BAUpdate response data
+*	@input BillingAgreementId : String
+*
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+	
+	if(!customer.isAuthenticated()) {
+		return PIPELET_ERROR;
+	}
+
+	var data : Object = args.Data;
+	var customerBillingAgreement : Object = paypalHelper.getCustomerBillingAgreement(customer);
+	 
+	var errorCodes = [10201, //Billing Agreement was cancelled
+	                  10204, //User's account is closed or restricted
+	                  10211, //Invalid billing agreement ID
+	                  11451]; //Billing Agreement Id or transaction Id is not valid	
+
+	if(errorCodes.indexOf(parseInt(data.l_errorcode0)) >= 0) {
+		customerBillingAgreement.remove(args.BillingAgreementId);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

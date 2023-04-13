@@ -1,0 +1,80 @@
+
+var net : Object = require('dw/net');
+var svc : Object = require('dw/svc');
+var util : Object = require('dw/util');
+
+var NvpUtil : Object = require('~/cartridge/scripts/modules/util/NvpUtil.ds');
+var NvpProcessor : Object = NvpUtil.NvpProcessor;
+
+//object with custom responses for API paypal calls
+var customResponseParsers : Object = {
+
+	/**
+	 * transactionSearch() custom response parser for TransactionSearch API call
+	 *
+	 * @param service {dw.svc.HTTPService} service, which was used for the call
+	 * @param httpClient {dw.net.HTTPClient} response from http call
+	 * @returns {Object} Parsed NVP response whitch returns to service object
+	 */
+	transactionSearch : function (service : svc.HTTPService, httpClient : net.HTTPClient) : Object {
+		var response : String = httpClient.getText();
+		var parsedResponse : util.HashMap = NvpProcessor.parse(response, true);	
+		var resultNumber: Number = returnMaxTransactionNumber(parsedResponse);
+		var resultArray : Array = [];
+		var resultObj = {
+			resultArray : resultArray, 
+			responseAck : parsedResponse.get('ack')
+		};
+
+		for (let i = 0; i <= resultNumber; i++) {
+			resultArray.push(createResponseElement(i, parsedResponse));
+		}
+
+		return resultObj;
+	}
+};
+
+/**
+ *  returnMaxTransactionNumber() check whether the result of TransactionSeach API call has more than 100 results and return number of TransactionSeach results
+ *
+ * @param response {dw.util.HashMap} response from TransactionSeach API call
+ * @returns {Number} number of TransactionSeach results
+ */
+function returnMaxTransactionNumber(response : util.HashMap) : Number {
+	var maxResult : Number = null;
+
+	if (response.containsKey('l_transactionid99')) {
+		return 99;
+	}
+
+	for (let i = 0; i <= 98; i++) {
+		if (maxResult) { break; }
+
+		if (response.containsKey('l_transactionid' + (i+1))) {
+			continue;
+		} else {
+			return i;
+		}
+	}
+}
+
+/**
+ *  createResponseElement() remove unnecessary characters from response for better reading
+ *
+ * @param position {Number} position number of the current element
+ * @param response {dw.util.HashMap} response from TransactionSeach API call
+ * @returns {util.HashMap} number of TransactionSeach results
+ */
+function createResponseElement(position : Number, response : util.HashMap) : util.HashMap {
+	var responseParams : Array = ['l_amt','l_currencycode','l_email','l_feeamt','l_name','l_netamt','l_status','l_timestamp','l_timezone','l_transactionid','l_type'];
+
+	var element : util.HashMap = new util.HashMap();
+
+	responseParams.forEach(function (param) {
+		element.put(param.replace('l_', ''), response[param + position] ? response[param + position] : null);
+	});
+
+	return element;
+}
+
+module.exports = customResponseParsers;

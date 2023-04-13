@@ -1,0 +1,47 @@
+/**
+*	Handle result of API call
+*
+*	@input RequestContainer : Object {method : String, data : Object} Object with request data and API method
+*	@input ResponseContainer : Object {data : Object, service : svc.Service} parsed call result
+*
+*/
+
+var order : Object = require('dw/order');
+var value : Object = require('dw/value');
+var system : Object = require('dw/system');
+var util : Object = require('dw/util');
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var responseContainer : Object = args.ResponseContainer;
+	var requestContainer : Object = args.RequestContainer;
+	var responseData : Object = responseContainer.data;
+	var method : String = requestContainer.method;
+	var logger : system.Log = paypalHelper.getLogger(method);
+
+	try {
+
+		var ack : String = responseData.ack;
+		var correlationId = responseData.correlationid;
+
+		if (!empty(ack) && (ack === 'Failure' || ack === 'FailureWithWarning')) {
+
+			var messages : Array = paypalHelper.parseResponseForMessages(responseData);
+
+			for each (let message in messages) {
+				logger.error(message);
+			}
+
+			return PIPELET_ERROR;
+		}
+
+	} catch (error) {
+		logger.error(error);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

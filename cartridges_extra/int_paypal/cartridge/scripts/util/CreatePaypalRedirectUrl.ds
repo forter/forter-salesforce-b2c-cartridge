@@ -1,0 +1,76 @@
+/**
+*	Create redirect url to PayPal, that depend on an API method
+*
+*	@input Token : String Token from SetExpressCheckout API call
+*	@input PaypalApiMethod : String Paypal API Method
+*	@input PaypalCredit : Boolean indicale if credit flow is active
+*	@input OrderID : String order id from DoExpressExpressCheckout call
+*
+*	@output PaypalRedirectUrl : String URL redirect Buyer to
+*
+*/
+
+var web : Object = require('dw/web');
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+var NvpUtil : Object = require('~/cartridge/scripts/modules/util/NvpUtil.ds');
+var NvpProcessor : Object = NvpUtil.NvpProcessor;
+var NVP : Object = NvpUtil.NVP;
+var logger : Object = paypalHelper.getLogger();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var token : String = args.Token;
+	var payPalApiMethod : String = args.PaypalApiMethod;
+	var isCredit : Boolean = args.PaypalCredit;
+	var orderID : String = args.OrderID;
+
+	if (empty(token)) {
+		var error : Object = new Error('Cannot create redirect url without token');
+		logger.error(error);
+		return PIPELET_ERROR;
+	}
+
+	var payPalRedirectUrlParameters : Object = {
+		cmd : getApiMehodUrlRepresentation(payPalApiMethod)
+	};
+
+	if (orderID) {
+		payPalRedirectUrlParameters.order_id = orderID;
+	} else {
+		payPalRedirectUrlParameters.token =  token;
+	}
+
+	var paypalEndpoint : String = prefs.paypalEndpoint;
+
+	if (isCredit && prefs.PP_API_Easy_Payment) {
+		paypalEndpoint = prefs.easyPaymentUrl;
+		payPalRedirectUrlParameters.cmd = null; //Nvp processor will skip null property
+	}
+
+	var payPalRedirectUrlQueryString : NVP = NvpProcessor.createNvp(payPalRedirectUrlParameters);
+
+	//Create Redirect to PayPal URL
+	var payPalRedirectUrl : String = paypalEndpoint + '?' + payPalRedirectUrlQueryString.toString();
+
+	args.PaypalRedirectUrl = payPalRedirectUrl;
+
+	return PIPELET_NEXT;
+}
+
+/**
+ * getApiMehodUrlRepresentation() return cmd value for different API call
+ *
+ * @param methodName {String} API call method
+ * @returns {String} cmd value
+ */
+function getApiMehodUrlRepresentation(methodName : String) : String {
+
+	var methodMap : Object = {
+		'SetExpressCheckout' : '_express-checkout',
+		'DoExpressCheckoutPayment' : '_express-checkout'
+	};
+
+	return methodMap[methodName];
+}

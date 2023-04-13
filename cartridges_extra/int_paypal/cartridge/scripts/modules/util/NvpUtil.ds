@@ -1,0 +1,194 @@
+var util : Object = require('dw/util');
+
+
+//NVP Processor single object
+var NvpProcessor : Object = {};
+
+/**
+ * NvpProcessor.createNvp() method. NVP object factory
+ *
+ * @param {Object} object to create NVP from
+ * @returns {NVP} NVP object itself
+ */
+NvpProcessor.createNvp = function (dataObject : Object) : NVP {
+	return new NVP(dataObject);
+}
+
+/**
+ * NvpProcessor.parse() method. NVP object factory
+ *
+ * @param {Object} object to create NVP from
+ * @param {Boolean} optianal parameter. If true all keys will generated in lower case
+ * @returns {NVP} NVP object itself
+ */
+NvpProcessor.parse = function (nvpString : String, namesToLowerCase : Boolean) : util.HashMap {
+
+	if (empty(nvpString) && typeof nvpString !== 'string') {
+		throw new Error('Cannot parse non-string NVP object');
+	}
+
+	var nvpParts : Array = nvpString.split('&');
+	var nvpMap : util.HashMap = new util.HashMap();
+
+	nvpParts.forEach(function (nvpEntry : String) {
+		let entryParts : Array = nvpEntry.split('=');
+		let name : String = new String(entryParts[0]);
+
+		if (namesToLowerCase) {
+			name = name.toLowerCase();
+		}
+
+		let value : Object = parseNvpValueEntry(entryParts[1]);
+
+		nvpMap.put(name, value);
+	});
+
+	return nvpMap;
+}
+
+
+/**
+ * NVP object constructor
+ *
+ * @constructor
+ * @param {Object} object to create NVP from
+ */
+function NVP(dataObject : Object) : Object {
+	this.__nvpPairs = new util.HashMap();
+
+	//Create NVP string optionally if data object was passed
+	if (!empty(dataObject) && typeof dataObject === 'object') {
+		this.__nvpPairs = createNvpPairsFromObject(dataObject);
+	}
+
+	/**
+	 * NVP.toString() overloaded to generate NVP string from Object/util.HashMap
+	 *
+	 * @returns {String} NVP string
+	 */
+	this.toString = function () : String {
+		var nvpEntrySet : Set = this.__nvpPairs.entrySet();
+		var nvpParts : Array = [];
+
+		for (let i : Number = 0, len : Number = nvpEntrySet.length; i < len; i++) {
+			let value : Object = nvpEntrySet[i].getValue();
+
+			//It is no need to put nulls in to NVP string
+			if (empty(value) || value == 'null') { continue; }
+
+			nvpParts.push(nvpEntrySet[i].getKey() + '=' + value);
+		}
+
+		var nvpString : String =  nvpParts.join('&');
+		return nvpString;
+	}
+
+}
+
+/**
+ * NVP.add() public method adds new pair to NVP pairs
+ *
+ * @param {String} name (key) for NVP entry
+ * @param {String} value for NVP entry
+ */
+NVP.prototype.add = function (name : String, value : String) : null {
+
+	if (empty(name) || typeof name !== 'string') {
+		throw new Error('NVP name cannot be non-string object');
+	}
+
+	if (name.indexOf('=') != '-1') {
+		throw new Error('NVP name cannot contains equal sign (=)');
+	}
+
+	if (empty(value) || typeof value !== 'string') {
+		throw new Error('NVP value cannot be non-string object');
+	}
+
+	this.__nvpPairs.put(name, prepareValueForNvp(value));
+}
+
+/**
+ * NVP.merge() public method adds a bunch of params to existing NVP object
+ *
+ * @param {util.HashMap} map to merge with
+ * @returns {NVP} instance itself
+ */
+NVP.prototype.merge = function (mapToMerge : util.HashMap) : NVP {
+
+	if (empty(mapToMerge)) {
+		throw new Error('Cannot merge with not a HashMap object');
+	}
+
+	this.__nvpPairs.putAll(mapToMerge);
+
+	//Return instance itself for suitable method calls chaining
+	return this;
+}
+
+/**
+ * NVP.remove() public method removes name-value pair from NVP pairs
+ *
+ * @param {String} name (key) for removal
+ */
+NVP.prototype.remove = function (name : String) : null {
+	this.__nvpPairs.remove(name);
+}
+
+
+//Module private methods section:
+
+/**
+ * createNvpPairsFromObject() private module function returns ready for NVP element
+ *
+ * @param {Object} Object for NVP
+ * @returns {util.HashMap} NVP ready pairs
+ */
+function createNvpPairsFromObject(dataObject : Object) : util.HashMap {
+
+	if (empty(dataObject) || typeof dataObject !== 'object') {
+		throw new Error("Cannot create NVP string from non-object");
+	}
+
+	var keys : Array = [];
+
+	for (let key in dataObject) {
+		if (dataObject.hasOwnProperty(key)) {
+			keys.push(key);
+		}
+	}
+
+	var nvpPairs : util.HashMap = new util.HashMap();
+
+	keys.forEach(function (key) {
+		nvpPairs.put(key, prepareValueForNvp(dataObject[key]));
+	});
+
+	return nvpPairs;
+}
+
+/**
+ * prepareValueForNvp() private module function returns ready for NVP element
+ *
+ * @param {String} value
+ * @returns {String} NVP ready value
+ */
+function prepareValueForNvp(value : String) : String {
+	return encodeURIComponent(value).replace(/\'/g,'%27');
+}
+
+/**
+ * parseNvpValueEntry() private module function returns value from NVP entry
+ *
+ * @param {String} value
+ * @returns {String} decoded NVP value
+ */
+function parseNvpValueEntry(value : String) : String {
+	return decodeURIComponent(value);
+}
+
+//Export module objects
+module.exports = {
+	NvpProcessor : NvpProcessor,
+	NVP : NVP
+};

@@ -1,0 +1,12 @@
+{
+    "hooks": [
+        {
+            "name": "app.payment.processor.authorize_net",
+            "script": "./hooks/payment/processor/AUTHORIZE_NET"
+        },
+        {
+            "name": "app.payment.form.processor.authorize_net",
+            "script": "./hooks/payment/processor/AUTHORIZE_NET_form_processor"
+        }
+    ]
+}

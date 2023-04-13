@@ -1,0 +1,33 @@
+<?xml version="1.0"?>	
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+	<field formid="orderID" type="string" label="Order Number:" mandatory="false"/>
+	<field formid="customerName" type="string" max-length="50" label="Customer Name:" mandatory="false"/>
+	<field formid="email" type="string" max-length="50" label="Email:" mandatory="false"/>
+	<field formid="startDate" type="string" label="Date From:" mandatory="false"/>
+	<field formid="endDate" type="string" label="Date To:" mandatory="false"/>
+	<field formid="status" type="string" label="Status:" mandatory="false">
+		<options>
+			<option optionid="All" label="All" value=""/>
+			<option optionid="Created" label="Created" value="0"/>
+			<option optionid="New" label="New" value="3"/>
+			<option optionid="Open" label="Open" value="4"/>
+			<option optionid="Completed" label="Completed" value="5"/>
+			<option optionid="Failed" label="Failed" value="8"/>
+			<option optionid="Cancelled" label="Cancelled" value="6"/>
+			<option optionid="Replaced" label="Replaced" value="7"/>
+		</options>
+	</field>
+	<field formid="forterSearchDecision" type="string" label="Forter Decision:" mandatory="false">
+		<options>
+			<option optionid="All" label="All" value=""/>
+			<option optionid="Approved" label="Approved" value="APPROVED"/>
+			<option optionid="Declined" label="Declined" value="DECLINED"/>
+			<option optionid="Not reviewed" label="Not reviewed" value="NOT_REVIEWED"/>
+			<option optionid="Not sent" label="Not sent" value="NOT_SENT"/>
+			<option optionid="Error" label="Error" value="ERROR"/>
+		</options>
+	</field>
+	
+	<!-- functional buttons -->
+	<action formid="search" valid-form="false"/>
+</form>

@@ -1,0 +1,23 @@
+/**
+* Create new PayPalNewTransactions Custom Object with data from a new transaction 
+*
+*  @input ResponseData : Object Response data from a API call
+*  @input InvNum : String custom order number for a PayPalNewTransactions Custom Object
+*
+*/
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var transactionData = args.ResponseData;
+	var newOrder : dw.object.CustomObject = dw.object.CustomObjectMgr.createCustomObject('PayPalNewTransactions', args.InvNum);
+	newOrder.custom.orderDate = transactionData.ordertime;
+	newOrder.custom.orderTotal = transactionData.amt;
+	newOrder.custom.paymentStatus = transactionData.paymentstatus || 'Unknown';	
+	newOrder.custom.transactionId = transactionData.transactionid;
+	newOrder.custom.firstName = transactionData.firstname;
+	newOrder.custom.lastName = transactionData.lastname;
+	newOrder.custom.email = transactionData.email || 'Unknown';
+	newOrder.custom.currencyCode = transactionData.currencycode;
+	newOrder.custom.transactionsHistory = [transactionData.transactionid];
+	return PIPELET_NEXT;
+}

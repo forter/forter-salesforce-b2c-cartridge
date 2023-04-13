@@ -1,0 +1,145 @@
+var system : Object = require('dw/system');
+var net : Object = require('dw/net');
+var util : object = require('dw/util');
+var svc : Object = require('dw/svc');
+
+var NvpUtil : Object = require('~/cartridge/scripts/modules/util/NvpUtil.ds');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+var customResponseParsers : Object = require('~/cartridge/scripts/modules/service/CustomResponseParsers.ds');
+var NvpProcessor : Object = NvpUtil.NvpProcessor;
+var NVP : Object = NvpUtil.NVP;
+
+var serviceConfig : Object = {
+
+	/**
+	 * createRequest() function. parse Object with request data into string line for request
+	 * @param service {dw.svc.HTTPService} service, which will be used for the call
+	 * @param requestDataContainer {Object} object with request data
+	 * @param logger {dw.system.Log} logger
+	 * @returns {Boolean} string line for request
+	 */
+	createRequest : function (service : svc.HTTPService, requestDataContainer : Object , logger : system.Log, isIpn : Boolean) {
+
+		var nvp : String;
+		service.isIpn = isIpn || false;
+		if (isIpn) {
+			nvp = createIPNRequestString(service, requestDataContainer);
+		} else {
+			nvp = createPaypalRequestString(service, requestDataContainer, logger);
+		}
+
+		//Create NVP string for request
+		return nvp.toString();
+	},
+
+	parseResponse : function (service : svc.HTTPService, httpClient : net.HTTPClient) {
+		if (service.getRequestData().indexOf('METHOD=TransactionSearch') + 1) {
+			return customResponseParsers.transactionSearch(service, httpClient);
+		} else {
+			return service.isIpn ? httpClient.getText() : NvpProcessor.parse(httpClient.getText(), true);
+		}
+	},
+
+	getRequestLogMessage: function(request : Object) : String {
+		return prepareLogData(request);
+	},
+
+	getResponseLogMessage: function(response : Object) : String {
+		return prepareLogData(response.text);
+	}
+};
+
+var allSites : List = system.Site.getAllSites();
+
+//NVP service registration for all sites
+for each (let site : system.Site in allSites) {
+	let serviceName : String = prefs.initialNvpServiceName + '.' + site.getCurrent().getID();
+	svc.ServiceRegistry.configure(serviceName, serviceConfig);
+}
+
+/**
+ * checkRequestDataContainer() function. Checks requestDataContainer object {method: String, data: Object}
+ * @param {Object} equestDataContainer object.
+ * @config {String} [method] API Method to run
+ * @config {Object} [data] Data object
+ * @returns {Boolean} is requestDataContainer valid or not
+ */
+function checkRequestDataContainer(requestDataContainer) : Boolean {
+	var result = (!empty(requestDataContainer)
+				&& !empty(requestDataContainer.method)
+				&& !empty(requestDataContainer.data) 
+				&& typeof requestDataContainer.method === 'string'
+				&& typeof requestDataContainer.data === 'object');
+
+	return result;
+}
+
+/**
+ * prepareLogData() prepare formatted data for writing in log file
+ * @param data {String} URI encoded string
+ * @returns {String} formatted string
+ */
+function prepareLogData(data : String) : String {
+	if(data === null) {
+		return 'Data of response or request is null';
+	}
+	var result : String = '\n';
+	var params : Array = data.split('&');
+ 
+	params.forEach(function(param) {
+		var paramArr = param.split('=');
+		var key = paramArr[0];
+		var value = paramArr[1];
+		if(key == 'SIGNATURE' || key == 'CVV2' || key == 'EXPDATE' || key == 'ACCT' || key == 'PWD') {
+			value = '*****';
+		}
+		result += decodeURIComponent(key + '=' + value) + '\n';
+	});
+
+	return result;
+}
+
+function createPaypalRequestString(service : svc.HTTPService, requestDataContainer : Object, logger : system.Log) : NVP {
+	var isDataContainerValid : Boolean = checkRequestDataContainer(requestDataContainer);
+
+		if (empty(logger)) {
+			var logger : system.Log = paypalHelper.getLogger(requestDataContainer.method);
+		}
+
+		//Check if requestDataContainer has valid structure
+		if (!isDataContainerValid) {
+			var msg : String = 'Wrong requestDataContainer object specified for service, cannot proceed with call';
+			logger.error(msg);
+			throw new Error(msg);
+		}
+
+		var serviceCredential : svc.ServiceCredential = null;
+
+		try {
+			serviceCredential = service.getConfiguration().getCredential();
+		} catch (error) {
+			var msg : String = 'Cannot get Credential or Configuration object for ' + prefs.nvpServiceName + ' service. Please check configuration';
+			logger.error(msg);
+			throw new Error(msg);
+		}
+
+		//POST is default method
+		//PayPal requires http x-www-form-urlencoded header for NVP
+		service.addHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+		var headers : util.HashMap = require('~/cartridge/scripts/modules/service/CreateRequestHeaders.ds')(requestDataContainer.method, serviceCredential);
+		var credentialId : String = serviceCredential.getID();
+
+		if (prefs.PP_SignatureCredentialsIDs.indexOf(credentialId) != -1) {
+			headers.put('SIGNATURE', system.Site.getCurrent().getCustomPreferenceValue('PP_API_Signature'));
+		}
+
+		return NvpProcessor.createNvp(requestDataContainer.data).merge(headers);
+}
+
+function createIPNRequestString(service : svc.HTTPService, requestDataContainer : Object) : NVP {
+	service.setURL(prefs.paypalEndpoint);
+	service.setRequestMethod('POST');
+	return NvpProcessor.createNvp(requestDataContainer);
+}

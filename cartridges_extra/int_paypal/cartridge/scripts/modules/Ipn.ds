@@ -1,0 +1,108 @@
+var util : Object = require('dw/util');
+var io : Object = require('dw/io');
+var NvpProcessor : Object = require('~/cartridge/scripts/modules/util/NvpUtil.ds').NvpProcessor;
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var logger : dw.system.Log = paypalHelper.getLogger('IPN');
+var notificationLogger : dw.system.Log = paypalHelper.getLogger('Notification');
+var prefs : Object = require('~/cartridge/scripts/modules/util/Preferences.ds');
+
+var ipn : Object = {};
+
+/**
+ * parseNotification() parse PayPal IPN message
+ *
+ * @param parameters {util.Map} http parameters from IPN message
+ * @returns {dw.util.HashMap} parsed IPN message
+ */
+ipn.parseNotification = function (parameters : util.Map) : util.HashMap {
+	var notification : util.HashMap = new util.HashMap();
+
+	for (let property in parameters) {
+		notification.put(property, parameters.get(property).getValue());
+	}
+
+	return notification;
+}
+
+/**
+ * parseNotification() create action pipeline, depend on payment status from IPN response
+ *
+ * @param paymentStatus {String} payment status
+ * @returns {String} pipeline name
+ */
+ipn.getActionPipeline = function (paymentStatus : String) : String {
+
+	if (empty(paymentStatus)) {
+		throw new Error('payment status value is invalid');
+	}
+
+	var pipelineName : String = null;
+
+	switch (paymentStatus) {
+		case 'Completed' :
+			pipelineName = 'Ipn-ChangeOrderStatus';
+		break;
+
+		default :
+			pipelineName = 'Ipn-Skip';
+	}
+
+	return pipelineName;
+}
+
+/**
+ * isAuthentic() checks the notification is valid
+ *
+ * @param notification {dw.util.HashMap} notification
+ * @returns {Boolean}
+ */
+ipn.isAuthentic = function (notification : util.HashMap) : Boolean {
+
+	var isAuthentic : Boolean = true;
+	var service : dw.svc.ServiceDefinition;
+
+	try {
+		service = dw.svc.ServiceRegistry.get(prefs.nvpServiceName);
+		notification.put('cmd', '_notify-validate');
+		service.call(notification, null, true);
+	} catch (error) {
+		logger.error(error);
+	}
+
+	var notificationValidationResult : String = service.getResponse();
+
+	if (notificationValidationResult === 'INVALID' || notificationValidationResult !== 'VERIFIED') {
+		isAuthentic = false;
+	}
+
+	return isAuthentic;
+}
+
+/**
+ * logNotification() logs notification
+ *
+ * @param notification {dw.util.HashMap} notification
+ * @returns {Boolean}
+ */
+ipn.logNotification = function (notification : HashMap) : Boolean {
+
+	if (empty(notification)) {
+		logger.warn('Cannot log empty notification');
+		return false;
+	}
+
+	var notificationJsonString : String = null;
+
+	try {
+		notificationJsonString = JSON.stringify(paypalHelper.mapToObject(notification));
+	} catch (error) {
+		logger.error(error);
+	}
+
+	notificationLogger.error(notificationJsonString);
+
+	return true;
+};
+
+
+module.exports = ipn;

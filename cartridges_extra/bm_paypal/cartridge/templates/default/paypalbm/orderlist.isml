@@ -1,0 +1,141 @@
+<isdecorate template="paypalbm/util/pt_paypal">
+
+<isinclude template="inc/Modules">
+<isinclude template="paypalbm/util/modules">
+
+<isscript>
+var paypalHelper : Object = require('int_paypal/cartridge/scripts/modules/PaypalHelper.ds');
+
+var isSearchByOrderNo : Boolean = pdict.CurrentHttpParameterMap.orderNo.submitted;
+var isSearchByTransaction : Boolean = pdict.CurrentHttpParameterMap.transactionId.submitted
+
+if (!isSearchByOrderNo && !isSearchByTransaction) {
+	isSearchByOrderNo = true;
+}
+</isscript>
+ 
+<div class="paypalbm_header">
+	<isset name="ordersUrl"   value="${URLUtils.url('SiteNavigationBar-ShowMenuitemOverview', 'CurrentMenuItemId', 'orders')}" scope="page">
+	<isbreadcrumb name1="Ordering" url1="${ordersUrl}" name2="${Resource.msg('transactions.title', 'paypalbm', null)}">
+	
+	<table>
+		<tr><td width="100%" class="table_title w e s n">${Resource.msg('transactions.title', 'paypalbm', null)}</td></tr>
+		<tr><td class="w e s"></td></tr>
+		<tr><td class="table_title_description e w"><p>${Resource.msg('transactions.description', 'paypalbm', null)}</p></td></tr>
+	</table>
+</div>
+
+<div id="paypalbm_search_order_by_id" class="js_paypalbm_switch_block" style="display:${isSearchByOrderNo ? 'block' : 'none'}">
+	<table class="infobox w e s n">
+		<tr>
+			<td class="infobox_title_search">${Resource.msg('search.order.title', 'paypalbm', null)}</td>
+			<td align="right" nowrap="nowrap" class="infobox_item_search">
+				<span class="switch_link">${Resource.msg('search.orderbynumber', 'paypalbm', null)}</span>&nbsp;
+				<a href="#paypalbm_search_transaction_by_id" class="switch_link js_paypalbm_switch">${Resource.msg('search.transactionbyid', 'paypalbm', null)}</a>
+			</td>
+		</tr>
+		<tr>
+			<td class="infobox_item_search" colspan="2">
+				<form action="${URLUtils.https('PaypalAdmin-Orders')}" method="post">
+					<table style="width:inherit">
+						<tr>
+							<td class="infobox_item_search" nowrap="nowrap" style="width:110px"><span>${Resource.msg('search.order.number', 'paypalbm', null)}:</span>&nbsp;</td>
+							<td class="infobox_item_search"><input type="text" name="orderNo" value="${pdict.CurrentHttpParameterMap.orderNo.submitted ? pdict.CurrentHttpParameterMap.orderNo.stringValue : ''}" maxlength="350" size="35" class="inputfield_en"></td>
+							<td class="infobox_item_search">&nbsp;</td>
+							<td class="infobox_item_search"><button name="simpleSearch" value="true" class="button">${Resource.msg('search.submitbutton', 'paypalbm', null)}</button></td>
+						</tr>
+					</table>
+				</form>
+			</td>
+		</tr>
+		<tr><td colspan="2">&nbsp;</td></tr>
+	</table>
+</div>
+
+<div id="paypalbm_search_transaction_by_id" class="js_paypalbm_switch_block" style="display:${isSearchByTransaction ? 'block' : 'none'}">
+	<table class="infobox w e s n">
+		<tr>
+			<td class="infobox_title_search">${Resource.msg('search.order.title', 'paypalbm', null)}</td>
+			<td align="right" nowrap="nowrap" class="infobox_item_search">
+				<a href="#paypalbm_search_order_by_id" class="switch_link js_paypalbm_switch">${Resource.msg('search.orderbynumber', 'paypalbm', null)}</a>&nbsp;
+				<span class="switch_link">${Resource.msg('search.transactionbyid', 'paypalbm', null)}</span>
+			</td>
+		</tr>
+		<tr>
+			<td class="infobox_item_search" colspan="2">
+				<form action="${URLUtils.https('PaypalAdmin-Orders')}" method="post">
+					<table style="width:inherit">
+						<tr>
+							<td class="infobox_item_search" nowrap="nowrap" style="width:110px"><span>${Resource.msg('search.transactionnumber', 'paypalbm', null)}:</span>&nbsp;</td>
+							<td class="infobox_item_search"><input type="text" name="transactionId" value="${pdict.CurrentHttpParameterMap.transactionId.submitted ? pdict.CurrentHttpParameterMap.transactionId.stringValue : ''}" maxlength="350" size="35" class="inputfield_en"></td>
+							<td class="infobox_item_search">&nbsp;</td>
+							<td class="infobox_item_search"><button name="simpleSearch" value="true" class="button">${Resource.msg('search.submitbutton', 'paypalbm', null)}</button></td>
+						</tr>
+					</table>
+				</form>
+			</td>
+		</tr>
+		<tr><td colspan="2">&nbsp;</td></tr>
+	</table>
+</div>
+
+<isscript>
+	var pagingModel = pdict.PagingModel;
+	var orders = !empty(pagingModel) ? pagingModel.pageElements : [];
+</isscript>
+
+<isif condition="${!empty(orders)}">
+	<table>
+		<tr>
+			<td class="table_header w e s">${Resource.msg('search.grid.number', 'paypalbm', null)}</td>
+			<td class="table_header e s" nowrap="nowrap">${Resource.msg('search.grid.date', 'paypalbm', null)}</td>
+			<td class="table_header e s" nowrap="nowrap">${Resource.msg('search.grid.created', 'paypalbm', null)}</td>
+			<td class="table_header e s" nowrap="nowrap">${Resource.msg('search.grid.registration', 'paypalbm', null)}</td>
+			<td class="table_header e s" nowrap="nowrap">${Resource.msg('search.grid.customer', 'paypalbm', null)}</td>
+			<td class="table_header e s" nowrap="nowrap">${Resource.msg('search.grid.email', 'paypalbm', null)}</td>
+			<td class="table_header e s left" nowrap="nowrap">${Resource.msg('search.grid.total', 'paypalbm', null)}</td>
+			<td class="table_header e s left" nowrap="nowrap">${Resource.msg('search.grid.paypalamount', 'paypalbm', null)}</td>
+			<td class="table_header e s left" nowrap="nowrap" colspan="2">${Resource.msg('search.grid.status', 'paypalbm', null)}</td>
+		</tr>
+		
+		<isloop items="${orders}" var="order">
+			<tr>
+				<td class="table_detail w e s" nowrap="nowrap">
+					<a class="js_paypal_show_detail" href="${URLUtils.url('PaypalAdmin-OrderTransaction', 'orderNo', order.orderNo)}" data-iscustom='${order.isCustom}' data-orderno="${order.orderNo}" title="${Resource.msgf('ordertransaction.title', 'paypalbm', null, order.orderNo)}">${order.orderNo}</a>
+				</td>
+				<td class="table_detail e s" nowrap="nowrap">
+					<isprint value="${order.orderDate}"/>
+				</td>
+				<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.createdBy}"/></td>
+				<isif condition="${order.isRegestered}">
+					<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.isRegestered ? Resource.msg('search.grid.registration.registered', 'paypalbm', null) : Resource.msg('search.grid.registration.unregistered', 'paypalbm', null)}"/></td>
+				<iselse>
+					<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.regStatus}"/></td>
+				</isif>
+				<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.customer}"/></td>
+				<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.email}"/></td>
+				<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.orderTotal}"/></td>
+				<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.paypalAmount}"/></td>
+				<td class="table_detail e s" nowrap="nowrap"><isprint value="${order.status}"/></td>
+				<td class="table_detail e s" nowrap="nowrap">
+					<a class="js_paypal_show_detail" href="${URLUtils.url('PaypalAdmin-OrderTransaction', 'orderNo', order.orderNo)}" data-orderno="${order.orderNo}" data-iscustom='${order.isCustom}' title="${Resource.msgf('ordertransaction.title', 'paypalbm', null, order.orderNo)}">${Resource.msg('search.grid.changestatus', 'paypalbm', null)}</a>
+				</td>
+			</tr>
+		</isloop>
+		
+	</table>
+	
+	<ispaypalpagination pageurl="${URLUtils.https('PaypalAdmin-Orders')}" pagingmodel="${pagingModel}"/>
+	
+<iselse>
+
+	<div class="table_detail w e s">${Resource.msg('transactions.emptysearch', 'paypalbm', null)}</div>
+
+</isif>
+
+<div class="paypalbm_footer">
+	<a class="button" href="${ordersUrl}">&lt;&lt; ${Resource.msg('transactions.backordering', 'paypalbm', null)}</a>
+	<button class="button js_paypal_create_reference_transaction" title="${Resource.msgf('transaction.newtransaction.title', 'paypalbm', null)}" data-url="${URLUtils.https('PaypalAdmin-CreateNewTransaction')}">${Resource.msg('transactions.newtransaction', 'paypalbm', null)}</button>
+</div>
+
+</isdecorate>

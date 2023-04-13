@@ -1,0 +1,25 @@
+/**
+*	Creates data for DoVoid API call
+*
+*	@input AUTHORIZATIONID : String Transaction ID of the order or authorization that you wish to void
+*	@input NOTE : String Informational note that is displayed to the buyer~/cartridge/scripts
+*
+*	@output DoVoidRequestContainer : Object Data prepaired for request {method : {String}, data : {Object}}
+*/
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	//Collect required data for DoVoid
+	args.DoVoidRequestContainer = {
+		method : prefs.api.DoVoid.method,
+		data : {
+			AUTHORIZATIONID : args.AUTHORIZATIONID,
+			NOTE : args.NOTE
+		}
+	};
+
+	return PIPELET_NEXT;
+}

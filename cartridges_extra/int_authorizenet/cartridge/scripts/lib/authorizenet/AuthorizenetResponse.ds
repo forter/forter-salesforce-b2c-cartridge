@@ -1,0 +1,13 @@
+/**
+ * AuthorizenetResponse class is the response object of the calls.
+ *
+ * To include this script use:
+ * var AuthorizenetResponse = require("int_forter/cartridge/scripts/lib/authorizenet/AuthorizenetResponse.ds");
+ */
+function AuthorizenetResponse() {
+    this.status = 'ok';
+    this.errors = [];
+    this.request = null;
+}
+
+module.exports = AuthorizenetResponse;

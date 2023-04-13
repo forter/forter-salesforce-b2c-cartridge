@@ -1,0 +1,106 @@
+<isif condition="${dw.order.PaymentMgr.getPaymentMethod('PayPal').getPaymentProcessor().getID() == 'PAYPAL_EXPRESS'}" >
+	<iscontent type="text/html" charset="UTF-8" compact="true"/>
+	<isinclude template="util/modules"/>
+	
+	<isscript>
+		var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+	</isscript>
+	
+	<isset name="DecoratorTemplate" value="util/pt_empty" scope="page"/>
+	
+	<isdecorate template="${DecoratorTemplate}">
+	
+		<style>
+			#paypalEditDefaultShippingAddress label.error {display:block; float:none; font-weight:normal; background:none; padding-left:24%; text-align:left}
+			#paypalEditDefaultShippingAddress select {height:32px}
+		</style>
+	
+		<form method="post" action="${URLUtils.httpsContinue()}" id="paypalEditDefaultShippingAddress" name="${pdict.CurrentForms.profile.address.htmlName}">
+			<fieldset>
+			
+				<div class="dialog-required"> <span class="required-indicator">&#8226; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+				
+				<isif condition="${pdict.CurrentCustomer.authenticated && pdict.CurrentCustomer.profile.addressBook.addresses.size() > 0}">
+					<div class="select-address">
+						<div class="form-row">
+							<label for="${pdict.CurrentForms.billing.addressList.htmlName}">${Resource.msg('paypal.editdefaultshippingaddress.selectaddress','locale',null)}</label>
+							<isscript>
+								var customerAddresses : Array = (function() {
+									var result : Array = [];
+									var bookAddresses = customer.profile.addressBook.addresses;
+									for(let i = 0; i < bookAddresses.length; i++) {
+										let item = bookAddresses[i];
+										result.push({
+				            				firstname: item.firstName,
+				            				lastname: item.lastName,
+				            				address1: item.address1,
+				            				address2: item.address2,
+				            				postal: item.postalCode,
+				            				city: item.city,
+				            				states_state: item.stateCode,
+				            				country: item.countryCode.value,
+				            				phone: item.phone
+										});
+									}
+									return result;
+								})();
+							</isscript>
+							<select id="paypalSelectSavedAddress">
+								<option selected="selected" value="">${Resource.msg('paypal.editdefaultshippingaddress.selectaddress.optiondefault','locale',null)}</option>
+								<isloop items="${customerAddresses}" var="item">
+									<option value='${JSON.stringify(item).replace("'",'^')}'>${Resource.msgf('paypal.editdefaultshippingaddress.selectaddress.optionname', 'locale', null, item.firstname, item.lastname, item.address1, item.address2, item.postal, item.city,  item.states_state, item.country)}</option>
+								</isloop>
+							</select>
+						</div>
+					</div>
+				</isif>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.firstname}" type="input"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.lastname}" type="input"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.address1}" type="input"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.address2}" type="input"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.country}" type="select"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.states.state}" type="select"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.city}" type="input"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.postal}" type="input"/>
+		
+				<isinputfield formfield="${pdict.CurrentForms.profile.address.phone}" type="input"/>
+		
+				<div class="form-field-tooltip" >
+					(<a class="tooltip" href="${URLUtils.url('Page-Show', 'cid', 'help-telephone')}">
+						${Resource.msg('singleshipping.phonerequired','checkout',null)}
+						<div class="tooltip-content" data-layout="small">
+							<iscontentasset aid="help-telephone"/>
+						</div>
+					</a>)
+				</div>
+		
+				<div class="form-row form-row-button">
+					<button class="apply-button" type="submit" name="${pdict.CurrentForms.profile.address.edit.htmlName}" value="${Resource.msg('paypal.editdefaultshippingaddress.button.submit','locale',null)}">
+						${Resource.msg('paypal.editdefaultshippingaddress.button.submit','locale',null)}
+					</button>
+					<button class="cancel cancel-button" type="submit" name="${pdict.CurrentForms.profile.address.cancel.htmlName}" value="${Resource.msg('global.cancel','locale',null)}">
+						${Resource.msg('global.cancel','locale',null)}
+					</button>
+				</div>
+		
+				<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>
+				
+				<isscript>
+					var countries = paypalHelper.getCountriesAndRegions(pdict.CurrentForms.profile.address);
+					var json = JSON.stringify(countries);
+				</isscript>
+				<script>window.Countries = <isprint value="${json}" encoding="off"/>;</script>
+		
+			</fieldset>
+		</form>
+	
+	</isdecorate>
+</isif>

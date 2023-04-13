@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="forter.cred.customers">
+        <url>https://api.forter-secure.com/v2/accounts/</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="forter.cred.errors">
+        <url>https://api.forter-secure.com/errors/</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="forter.cred.settings">
+        <url>https://api.forter-secure.com/ext/settings</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="forter.cred.update">
+        <url>https://api.forter-secure.com/v2/status/</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="forter.cred.validate">
+        <url>https://api.forter-secure.com/v2/orders/</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="forter.cred.verify">
+        <url>https://api.forter-secure.com/credentials/test</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-credential service-credential-id="forter.cred.auth.attempt">
+        <url>https://api.forter-secure.com/v2/accounts/authentication-result/</url>
+        <user-id/>
+        <password/>
+    </service-credential>
+
+    <service-profile service-profile-id="forter.prof">
+        <timeout-millis>5000</timeout-millis>
+        <rate-limit-enabled>true</rate-limit-enabled>
+        <rate-limit-calls>5</rate-limit-calls>
+        <rate-limit-millis>10000</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>5</cb-calls>
+        <cb-millis>10000</cb-millis>
+    </service-profile>
+
+    <service-profile service-profile-id="forter.prof.errors">
+        <timeout-millis>5000</timeout-millis>
+        <rate-limit-enabled>true</rate-limit-enabled>
+        <rate-limit-calls>5</rate-limit-calls>
+        <rate-limit-millis>10000</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>5</cb-calls>
+        <cb-millis>10000</cb-millis>
+    </service-profile>
+
+    <service-profile service-profile-id="forter.prof.job">
+        <timeout-millis>5000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>false</cb-enabled>
+        <cb-calls>0</cb-calls>
+        <cb-millis>0</cb-millis>
+    </service-profile>
+
+    <service service-id="forter.rest.customers">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof</profile-id>
+        <credential-id>forter.cred.customers</credential-id>
+    </service>
+
+    <service service-id="forter.rest.errors">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof.errors</profile-id>
+        <credential-id>forter.cred.errors</credential-id>
+    </service>
+
+    <service service-id="forter.rest.settings">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof</profile-id>
+        <credential-id>forter.cred.settings</credential-id>
+    </service>
+
+    <service service-id="forter.rest.update">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof.job</profile-id>
+        <credential-id>forter.cred.update</credential-id>
+    </service>
+
+    <service service-id="forter.rest.validate">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof</profile-id>
+        <credential-id>forter.cred.validate</credential-id>
+    </service>
+
+    <service service-id="forter.rest.verify">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof</profile-id>
+        <credential-id>forter.cred.verify</credential-id>
+    </service>
+
+    <service service-id="forter.rest.auth.attempt">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>FORTER</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>forter.prof</profile-id>
+        <credential-id>forter.cred.auth.attempt</credential-id>
+    </service>
+</services>

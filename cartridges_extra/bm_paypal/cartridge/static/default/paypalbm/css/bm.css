@@ -1,0 +1,55 @@
+.paypalbm_header {margin-bottom:10px}
+.paypalbm_footer {padding:15px 0 0 0}
+.paypal_hide {display:none}
+
+.paypalbm_content table {width:100%; border-spacing:0; border-collapse:collapse}
+.paypalbm_content h2 {color: #84BD00; padding:0 0 10px; margin:0; font-size:15px; font-weight:bold; line-height:25px}
+.paypalbm_content .error_box {margin-bottom:10px}
+.paypalbm_content .paypalbm_transaction_detail_table {font-size:13px; line-height:1.4; margin-bottom:10px; width:100%}
+.paypalbm_content .paypalbm_transaction_detail_table td {padding:4px 6px}
+.paypalbm_content .paypalbm_gray {background:#fcfcfc}
+.paypalbm_content .paypalbm_table_head {font-size:14px; background:#f0f0f0; font-weight:bold}
+.paypalbm_content .paypalbm_table_head td {border-bottom:1px solid #dadada}
+.paypalbm_content .infobox_title {width:185px; text-align:right}
+.paypalbm_content .infobox_title i {font-weight:normal; color:#777}
+
+.paypalbm_pagination {padding:10px 0 0 0}
+.paypalbm_pagination .pagecursortxt {padding:0 2px}
+
+.paypalbm_window_content .paypalbm_content {padding:10px 10px 0 10px}
+.paypalbm_window_content .paypalbm_footer {display:none}
+.paypalbm_window_content .paypalbm_header {display:none}
+.paypalbm_window_content .x-window-body {background:#fff}
+.paypalbm_window_content table {width:inherit}
+
+.paypalbm_selectother_transactions {float:right}
+.paypalbm_selectother_transactions span {font-size:13px}
+
+.paypalbm_transaction_actions {padding:0 0 5px 0}
+.paypalbm_transaction_actions li {display:inline-block; padding:0 5px 0 0}
+.paypalbm_transaction_actions li span {display:inline-block; padding:2px 6px; text-decoration:none; background-color:#d9d9d9; border:1px solid #d9d9d9; border-radius:3px; color:#00629b; cursor:pointer; margin:0; white-space:nowrap; font-size:13px}
+.paypalbm_transaction_actions li span:hover {background-color:#eee; border:1px solid #ccc}
+
+.paypal_action_form h2 {color: #84BD00; padding:0 0 10px; margin:0; font-size:15px; font-weight:bold; line-height:1.1em}
+.paypal_action_form input {width:100px; border:1px solid #a5aeb5}
+.paypal_action_form .js_paypal_reference_transaction_card input {width:200px}
+.paypal_action_form textarea {width:300px}
+.paypal_action_form .paypal_error_field .infobox_title {color:#f00}
+.paypal_action_form .paypal_error_field input {border-color:#f00}
+.paypal_action_form table {width:100%; border-spacing:0; border-collapse:collapse}
+
+.paypal_error_msg_box {display:none; min-height:30px; margin:0 0 10px 0; border:1px solid #ffcf0f; padding:12px 12px 0 60px; background-repeat: no-repeat; color:#000; background: #ffffde url('../images/icon_alert.gif') no-repeat 15px 10px; font-size:13px; line-height:1.3em}
+.paypal_error_msg_box p {padding:0 0 12px 0}
+
+.paypal_ba_customer_search {padding: 6px}
+
+.js_paypal_create_reference_transaction {float: right}
+
+.paypal_new_transaction_form td .biginput{width: 220px;}
+
+.paypal_new_transaction_title {float: left}
+
+.js_paypal_toggle_button {margin-left: 10px; margin-bottom: 10px; padding: 0px 7px}
+
+
+

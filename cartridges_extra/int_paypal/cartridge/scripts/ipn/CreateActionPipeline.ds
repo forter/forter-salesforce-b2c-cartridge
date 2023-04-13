@@ -1,0 +1,32 @@
+/**
+*	Create dynamic pipeline name for jump node
+*
+*	@input PaymentStatus : String Payment status from GetTransactionDetails
+*
+*	@output ActionPipeline : String Next pipeline
+*/
+
+var util : Object = require('dw/util');
+var ipn : Object = require('~/cartridge/scripts/modules/Ipn.ds');
+var system : Object = require('dw/system');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+var logger : system.Log = paypalHelper.getLogger('IPN');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var actionPipeline : String = null;
+
+	try {
+		actionPipeline = ipn.getActionPipeline(args.PaymentStatus);
+	} catch (error) {
+		logger.error(error);
+		return PIPELET_ERROR;
+	}
+
+	args.ActionPipeline = actionPipeline;
+
+	return PIPELET_NEXT;
+
+}

@@ -1,0 +1,203 @@
+<!--- TEMPLATENAME: forterregister.isml --->
+<isdecorate template="application/MenuFrame">
+<iscontent type="text/html" charset="UTF-8">
+<isinclude template="inc/Modules">
+<link rel="stylesheet" href="${dw.web.URLUtils.staticURL('/css/style.css')}" />
+
+<!-- Page Navigator -->
+<isbreadcrumb name1="${pdict.MAIN_MENU_NAME}" url1="${pdict.TOP_URL.toString()}" name2="Configuration">
+<!-- EO Page Navigator -->
+<div class="overview_title">${dw.web.Resource.msg('forter_bm.configuration.overviewtitle', 'forter_bm', null)}</div>
+<div class="overview_title_description">${dw.web.Resource.msg('forter_bm.configuration.overviewtitledescription', 'forter_bm', null)}</div>
+
+<isscript>
+    var config            = require('*/cartridge/scripts/lib/forter/forterConfig.ds').ForterConfig, // Retrieve the current configuration values in order to determine the initial state of the form.
+        forterSiteID      = !empty(config.forterSiteID) ? config.forterSiteID : '',
+        forterSecretKey   = !empty(config.forterSecretKey) ? config.forterSecretKey : '',
+        showInitialScreen = empty(forterSiteID) && empty(forterSecretKey),                                  // If the site ID and secret key are empty then this is the first loading of the configuration page so the initial page with credentials should be displayed.
+        weeksArray        = new Array(13);
+</isscript>
+
+<iscomment> Following style element contains functional styling in order to determine which part of the page to display. </iscomment>
+<style type="text/css">
+<isif condition="${showInitialScreen}"><iscomment> If the initial screen should be displayed hide the elements for options page </iscomment>
+.js-options-screen {
+    display:none;
+}<iselse><iscomment> otherwise hide the credentials page which are displayed in initial screen. </iscomment>
+.js-initial-screen {
+    display:none;
+}
+</isif><isif condition="${!config.forterShowDeclinedPage}"><iscomment> If show decline page is not initialy checked then hide the custom message. </iscomment>
+.js-customized-message {
+    display:none;
+}
+</isif>
+</style>
+
+<form action="${dw.web.URLUtils.continueURL()}" method="post" id="forterregister">
+    <table class="main-table" cellpadding="5">
+        <tr>
+            <td>
+                <img class="forter-logo" src="${dw.web.URLUtils.staticURL('/icons/forter_logo.png')}" />
+            </td>
+        </tr>
+        <tr class="js-initial-screen">
+            <td class="forter-confirmation">
+                <div class="forter-logo-text">${dw.web.Resource.msg('forter_bm.configuration.initial.logotext', 'forter_bm', null)}</div>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td class="forter-confirmation">
+                <img class="forter-confirmation-img" src="${dw.web.URLUtils.staticURL('/icons/vi.png')}" />
+                <div class="forter-logo-text">${dw.web.Resource.msg('forter_bm.configuration.options.logotext', 'forter_bm', null)}</div>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <h1 class="forter-heading">${dw.web.Resource.msg('forter_bm.configuration.options.configure.title', 'forter_bm', null)}</h1>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <label for="configureFooter" class="forter-text" />
+                    ${dw.web.Resource.msg('forter_bm.configuration.options.configure.enabled.label', 'forter_bm', null)}
+                </label>
+                <div class="switch-container">
+                    <label class="switch switch-left-right" for="configureFooter">
+                        <input class="switch-input" id="configureFooter" type="checkbox" name="configureFooter" <isif condition="${config.forterEnabled}">checked="checked"</isif>/>
+                        <span class="switch-label"></span>
+                        <span class="switch-handle"></span>
+                        <label for="configureFooter" class="switch-yes">${dw.web.Resource.msg('forter_bm.configuration.options.configure.enabled.yes', 'forter_bm', null)}</label>
+                        <label for="configureFooter" class="switch-no">${dw.web.Resource.msg('forter_bm.configuration.options.configure.enabled.no', 'forter_bm', null)}</label>
+                    </label>
+                </div>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <h1 class="forter-heading">${dw.web.Resource.msg('forter_bm.configuration.options.communication.title', 'forter_bm', null)}</h1>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <div class="forter-check-box">
+                    <input id="declineDecision" class="forter-check-box" type="checkbox" name="declineDecision" onclick="toggleDeclineMessage(this);" <isif condition="${config.forterShowDeclinedPage}">checked="checked"</isif>/>
+                    <label for="declineDecision" class="labelForCheckbox <isif condition="${!config.forterCancelOrderOnDecline && !config.forterShowDeclinedPage}">disabled-checkbox</isif>" id="decline-decision"></label>
+                </div>
+                <label for="declineDecision" id="decline-decision-label" class="forter-text" />
+                    <isprint value="${dw.web.Resource.msg('forter_bm.configuration.options.communication.declinedecision.label', 'forter_bm', null)}" />
+                </label>
+            </td>
+        </tr>
+        <tr class="js-options-screen js-customized-message">
+            <td>
+                <div class="forter-text">${dw.web.Resource.msg('forter_bm.configuration.options.communication.customizedmessage.label', 'forter_bm', null)}</div>
+            </td>
+        </tr>
+        <tr class="js-options-screen js-customized-message">
+            <td>
+                <textarea name="declineMessage" class="forter-text declined-message"><isprint value="${config.forterCustomDeclineMessage}" encoding="on"/></textarea>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <h1 class="forter-heading">${dw.web.Resource.msg('forter_bm.configuration.options.paymentsettings.title', 'forter_bm', null)}</h1>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <div class="forter-check-box">
+                    <input id="autoInvoice" class="forter-check-box" type="checkbox" name="autoInvoice" <isif condition="${config.forterAutoInvoiceOnApprove}">checked="checked"</isif>/>
+                    <label for="autoInvoice" class="labelForCheckbox"></label>
+                </div>
+                <label for="autoInvoice" class="forter-text" />
+                    ${dw.web.Resource.msg('forter_bm.configuration.options.paymentsettings.autoinvoice.label', 'forter_bm', null)}
+                </label>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <div class="forter-check-box">
+                    <input id="cancelOrder" class="forter-check-box" type="checkbox" name="cancelOrder" onclick="toggleCancelOrder(this)" <isif condition="${config.forterCancelOrderOnDecline}">checked="checked"</isif>/>
+                    <label for="cancelOrder" class="labelForCheckbox"></label>
+                </div>
+                <label for="cancelOrder" class="forter-text" />
+                    ${dw.web.Resource.msg('forter_bm.configuration.options.paymentsettings.cancelorder.label', 'forter_bm', null)}
+                </label>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <h1 class="forter-heading">${dw.web.Resource.msg('forter_bm.configuration.options.jobsettings.title', 'forter_bm', null)}</h1>
+            </td>
+        </tr>
+        <tr class="js-options-screen forter-week-area">
+            <td class="forter-week-row">
+                <div class="forter-week-div">
+                    <div class="forter-text">
+                        <label for="forterWeeksAmount"><span>${dw.web.Resource.msg('forter_bm.configuration.options.jobsettings.label', 'forter_bm', null)}</span></label>
+
+                        <select id="forterWeeksAmount" type="select" name="forterWeeksAmount" class="forter-week-select"/>
+                            <isloop items="${weeksArray}" var="week" status="loopstate">
+                                <option class="select-option" label="${loopstate.index}" value="${loopstate.index}" <isif condition="${config.forterWeeksAmount == loopstate.index}">selected="selected"</isif>>${loopstate.index}</option>
+                            </isloop>
+                        </select>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr class="js-initial-screen js-change-api-credentials">
+            <td>
+                <h1 class="forter-heading">${dw.web.Resource.msg('forter_bm.configuration.initial.changeapicredentials.title', 'forter_bm', null)}</h1>
+            </td>
+        </tr>
+        <tr class="js-initial-screen js-change-api-credentials">
+            <td>
+                <label for="siteId" class="forter-text" />
+                    ${dw.web.Resource.msg('forter_bm.configuration.initial.changeapicredentials.siteid.label', 'forter_bm', null)}
+                </label>
+                <input id="siteId" class="forter-input" type="input" name="siteID" value="${forterSiteID}" />
+            </td>
+        </tr>
+        <tr class="js-initial-screen js-change-api-credentials">
+            <td>
+                <label for="secretKey" class="forter-text" />
+                    ${dw.web.Resource.msg('forter_bm.configuration.initial.changeapicredentials.secretkey.label', 'forter_bm', null)}
+                </label>
+                <input id="secretKey" class="forter-input" type="password" name="secretKey" value="${forterSecretKey}" />
+            </td>
+        </tr>
+        <tr class="js-initial-screen">
+            <td>
+                <div class="error-button-container">
+                    <span class="js-link-errors forter-error-message"></span>
+                    <input id="link" class="forter-button" type="button" onclick="ajax({formId: 'forterregister', url: '${dw.web.URLUtils.url('ForterExtension-Link')}', onload:linkLoaded});" value="${dw.web.Resource.msg('forter_bm.configuration.initial.changeapicredentials.link.label', 'forter_bm', null)}" />
+                </div>
+            </td>
+        </tr>
+        <tr class="js-options-screen">
+            <td>
+                <div class="l-actions-container">
+                    <span class="change-api-credentials-link-container">
+                        <a class="js-change-api-credentials-link" onclick="toggleChangeCredentials(true);">Change API credentials</a>
+                    </span>
+                </div>
+                <div class="r-actions-container">
+                    <input id="save" class="forter-button" type="button" onclick="ajax({formId: 'forterregister', url: '${dw.web.URLUtils.url('ForterExtension-Save')}', onload:saveLoaded});" value="${dw.web.Resource.msg('forter_bm.configuration.initial.changeapicredentials.save.label', 'forter_bm', null)}" />
+                </div>
+                <div class="r-actions-container">
+                    <span class="js-save-errors forter-error-message"></span>
+                    <span class="js-save-info forter-info-message">${dw.web.Resource.msg('forter_bm.configuration.info.saved', 'forter_bm', null)}</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</form>
+<div class="waiting js-waiting" style="display: none;">
+    <div class="container">
+        <img src="${dw.web.URLUtils.staticURL('icons/ajax-loader.gif')}" />
+    </div>
+</div>
+<script type="text/javascript" src="${dw.web.URLUtils.staticURL('js/forterCommon.js')}"></script>
+
+</isdecorate>

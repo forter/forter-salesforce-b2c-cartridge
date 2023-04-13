@@ -1,0 +1,39 @@
+/**
+* Run http call with request data data
+*
+*	@input RequestDataContainer : Object Request data container incapsulates method name and request data object {method : String, data : Object}
+*
+*	@output ResponseDataContainer : Object Response data container incapsulates response object and service instance {data : Object, service : srv.Service}
+*/
+
+var util : Object = require('dw/util');
+var system : Object = require('dw/system');
+var svc : Object = require('dw/svc');
+
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var requestDataContainer : Object = args.RequestDataContainer;
+	var method : String = requestDataContainer.method;
+	var methodPreferences : Object = prefs.getMethodPreferences(method);
+	var logger : system.Log = paypalHelper.getLogger(method);
+	var responseData : Object = null;
+	var service : svc.Service = null;
+
+	try {
+		service = svc.ServiceRegistry.get(prefs.nvpServiceName);
+		
+		responseData = paypalHelper.call(service, requestDataContainer, logger);
+	} catch (error) {
+		logger.error(error);
+	}
+
+	args.ResponseDataContainer = {
+		data : responseData,
+		service : service
+	};
+
+	return PIPELET_NEXT;
+}

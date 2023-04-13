@@ -1,0 +1,32 @@
+/**
+*	Creates data for SetExpressCheckout API call
+*
+*	@input LineItemContainer : Object LineIteam Container (Basket or Order)
+*	@input ReturnFromPaypalCallbackUrl : dw.web.URL Url that will be used for user return
+*	@input IsPayPalCredit : Boolean indicate if paypal credit flow is active
+*	@input BillingAgreement : Boolean indicate if call include billing agreement request
+*	@input PaypalCheckoutFromCart : Boolean indicate if setExpressCheckout from cart page flow is active
+*
+*	@output SetExpressCheckoutRequestContainer : Object Data prepared for request {method : String, data : Object}
+*/
+
+var order : Object = require('dw/order');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+var prefs : Object = paypalHelper.getPrefs();
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var lineItemContainer : order.LineItemCtnr = args.LineItemContainer;
+	var returnUrl : String = args.ReturnFromPaypalCallbackUrl;
+	var isPayPalCredit : Boolean = args.IsPayPalCredit;
+	var isBillingAgreement : Boolean = args.BillingAgreement;
+	var paypalCheckoutFromCart : Boolean = args.PaypalCheckoutFromCart;
+
+	//Collect required data for SetExpressRequest
+	args.SetExpressCheckoutRequestContainer = {
+		method : prefs.api.SetExpressCheckout.method,
+		data : paypalHelper.createSetExpressCheckoutRequestData(lineItemContainer, returnUrl, isPayPalCredit, isBillingAgreement, paypalCheckoutFromCart, false)
+	};
+
+	return PIPELET_NEXT;
+}

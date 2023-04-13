@@ -1,0 +1,38 @@
+<div id="paypal_void_form" class="paypal_hide">
+	<form class="paypal_action_form paypalbm_content" action="${URLUtils.url('PaypalAdmin-Action')}">
+		
+		<input type="hidden" name="methodName" value="DoVoid" />
+		<input type="hidden" name="authorizationId" value="${transaction.transactionid}" />
+		
+		<input type="hidden" name="orderNo" value="${order.orderNo}" />
+		<input type="hidden" name="isCustomOrder" value="${pdict.isCustomOrder}" />
+		
+		<h2>${Resource.msg('transaction.void.title', 'paypalbm', null)}</h2>
+		
+		<table class="paypalbm_transaction_detail_table infobox w e s n">
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.detail.authorizationid', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${transaction.transactionid}</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.detail.name', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${Resource.msgf('transaction.detail.customerformat', 'paypalbm', null, transaction.firstname, transaction.lastname)}</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top">${Resource.msg('transaction.detail.email', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${email}</td>
+			</tr>
+			<tr class="paypalbm_gray">
+				<td class="infobox_title top">${Resource.msg('transaction.void.amount', 'paypalbm', null)}:</td>
+				<td class="infobox_item top">${Resource.msgf('transaction.detail.moneyformat', 'paypalbm', null, transaction.amt, transaction.currencycode)}</td>
+			</tr>
+			<tr>
+				<td class="infobox_title top"><isprint value="${Resource.msg('transaction.void.note', 'paypalbm', null)}" encoding="off"/></td>
+				<td class="infobox_item top">
+					<textarea name="note" cols="50" rows="10" data-maxcount="255"></textarea>
+					<p><b class="js_textarea_count">0</b> ${Resource.msg('forms.charectersleft', 'paypalbm', null)}</p>
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>

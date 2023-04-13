@@ -1,0 +1,46 @@
+/**
+*	Save transaction result after DoDirectPayment API call
+*
+*	@input DirectPaymentResponseContainer : Object parsed response result
+*	@input PaymentInstrument : dw.order.PaymentInstrument current payment instrument
+*	@input Order : dw.order.Order order object
+*	@input PaymentProcessor : dw.order.PaymentProcessor current payment processor
+*/
+
+var order : Object = require('dw/order');
+var value : Object = require('dw/value');
+var paypalHelper : Object = require('~/cartridge/scripts/modules/PaypalHelper.ds');
+
+function execute( args : PipelineDictionary ) : Number {
+
+	var responseData : Object = args.DirectPaymentResponseContainer;
+	var currentOrder : order.Order = args.Order;
+	var paymentProcessor : order.PaymentProcessor = args.PaymentProcessor;
+	var paymentInstrument : order.OrderPaymentInstrument = args.PaymentInstrument;
+	var paymentTransaction : order.PaymentTransaction = paymentInstrument.getPaymentTransaction();
+	var logger : dw.system.Log = paypalHelper.getLogger();
+	var expMonth = paymentInstrument.getCreditCardExpirationMonth();
+	var cardExpMonth = expMonth.length > 1 ? expMonth : '0' + expMonth;
+
+	try {
+
+		//Set Payment Transaction data
+		paymentTransaction.setTransactionID(responseData.transactionid);
+		paymentTransaction.setAmount(new value.Money(parseFloat(responseData.amt), responseData.currencycode));
+		paymentTransaction.setPaymentProcessor(paymentProcessor);
+
+		//Set Payment Instrument data
+		paymentInstrument.custom.paypalAck = responseData.ack;
+		paymentInstrument.custom.paypalCorrelationId = responseData.correlationid;
+		paymentInstrument.custom.paypalExpDate = cardExpMonth + paymentInstrument.getCreditCardExpirationYear();
+
+		//Save PayPal payment method
+		currentOrder.custom.paypalPaymentMethod = 'directpayment';
+
+	} catch (error) {
+		logger.error(error);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}
