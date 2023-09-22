@@ -118,6 +118,13 @@
                 <externally-managed-flag>true</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="forterReasonCode">
+                <display-name xml:lang="x-default">Forter Reason Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="forterGroup">
@@ -130,11 +137,12 @@
                 <attribute attribute-id="forterTokenCookie"/>
                 <attribute attribute-id="forterRetryNumber"/>
                 <attribute attribute-id="forterRecommendations"/>
+                <attribute attribute-id="forterReasonCode"/>
             </attribute-group>
         </group-definitions>
     </type-extension>
-	
-	<type-extension type-id="OrderPaymentInstrument">
+
+    <type-extension type-id="OrderPaymentInstrument">
         <custom-attribute-definitions>
             <attribute-definition attribute-id="authorize_net_authorization">
                 <display-name xml:lang="x-default">Authorize.net Authorization response</display-name>
@@ -166,7 +174,7 @@
             </attribute-definition>
         </custom-attribute-definitions>
     </type-extension>
-	
+
     <type-extension type-id="SitePreferences">
         <custom-attribute-definitions>
             <attribute-definition attribute-id="authorizenetName">

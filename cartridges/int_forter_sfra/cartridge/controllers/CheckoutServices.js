@@ -149,6 +149,9 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
     //     forterDecision   = forterCall.validateOrder(argOrderValidate);
     // }
 
+    // IMPORTANT: The forterDecision variable holds the reasonCode from the authorization call,
+    //      which can be used to customize any type of response or flow.
+
     // if (forterDecision.JsonResponseOutput.processorAction == 'void') {
     //    Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
 
