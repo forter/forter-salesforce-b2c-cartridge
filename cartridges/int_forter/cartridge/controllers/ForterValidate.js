@@ -155,6 +155,7 @@ function validateOrder(args) {
         order.custom.forterUserAgent = !empty(orderRequest) ? orderRequest.connectionInformation.userAgent : null;
         order.custom.forterTokenCookie = !empty(orderRequest) ? orderRequest.connectionInformation.forterTokenCookie : null;
         order.custom.forterRecommendations = fResponse.recommendations;
+        order.custom.forterReasonCode = fResponse.reasonCode;
     });
 
     resp.JsonResponseOutput = fResponse;
