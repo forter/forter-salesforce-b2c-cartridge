@@ -186,7 +186,12 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
     }
 
     if (handlePaymentResult.error) {
-        if (sitePrefs.forterShowDeclinedPage === true && sitePrefs.forterCustomDeclineMessage) {
+        if (handlePaymentResult.customForterError) {
+            res.json({
+                error: true,
+                errorMessage: handlePaymentResult.customForterError
+            });
+        } else if (sitePrefs.forterShowDeclinedPage === true && sitePrefs.forterCustomDeclineMessage) {
             res.json({
                 error: true,
                 errorMessage: sitePrefs.forterCustomDeclineMessage

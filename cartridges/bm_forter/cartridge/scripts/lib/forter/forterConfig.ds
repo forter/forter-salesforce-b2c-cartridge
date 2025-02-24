@@ -1,4 +1,5 @@
 var ForterLogger = require('*/cartridge/scripts/lib/forter/forterLogger');
+var currentSite = require("dw/system/Site").getCurrent();
 
 /**
  * ForterConfig object contains all configuration data,
@@ -10,24 +11,36 @@ var ForterLogger = require('*/cartridge/scripts/lib/forter/forterLogger');
  */
 function ForterConfig() {
     this.forterLogger = new ForterLogger("ForterConfig.ds");
-    
-    var forterSitePreferences = dw.system.Site.getCurrent().getPreferences().getCustom();
+    var forterSitePreferences = currentSite.getPreferences().getCustom();
 
-    this.forterEnabled              = forterSitePreferences.forterEnabled;
-    this.forterSiteID               = forterSitePreferences.forterSiteID;
-    this.forterSecretKey            = forterSitePreferences.forterSecretKey;
-    this.forterShowDeclinedPage     = forterSitePreferences.forterShowDeclinedPage;
+    this.forterEnabled = forterSitePreferences.forterEnabled;
+    this.forterSiteID = forterSitePreferences.forterSiteID;
+    this.forterSecretKey = forterSitePreferences.forterSecretKey;
+    this.forterShowDeclinedPage = forterSitePreferences.forterShowDeclinedPage;
     this.forterCustomDeclineMessage = forterSitePreferences.forterCustomDeclineMessage;
     this.forterAutoInvoiceOnApprove = forterSitePreferences.forterAutoInvoiceOnApprove;
     this.forterCancelOrderOnDecline = forterSitePreferences.forterCancelOrderOnDecline;
-    this.forterWeeksAmount          = forterSitePreferences.forterWeeksAmount;
+    this.forterWeeksAmount = forterSitePreferences.forterWeeksAmount;
+    this.forterAbusePolicySettingsEnabled = forterSitePreferences.forterAbusePolicySettingsEnabled;
+    this.forterMerchantPolicyReshipper = forterSitePreferences.forterMerchantPolicyReshipper.value;
+    this.forterMerchantPolicyReshipperMessage = forterSitePreferences.forterMerchantPolicyReshipperMessage;
+    this.forterMerchantPolicyCheckoutINR = forterSitePreferences.forterMerchantPolicyCheckoutINR.value;
+    this.forterMerchantPolicyCheckoutINRMessage = forterSitePreferences.forterMerchantPolicyCheckoutINRMessage;
+    this.forterMerchantPolicyCheckoutReturns = forterSitePreferences.forterMerchantPolicyCheckoutReturns.value;
+    this.forterMerchantPolicyCheckoutReturnsMessage = forterSitePreferences.forterMerchantPolicyCheckoutReturnsMessage;
+    this.forterMerchantPolicyPromotionAbuse = forterSitePreferences.forterMerchantPolicyPromotionAbuse.value;
+    this.forterMerchantPolicyPromotionAbuseMessage = forterSitePreferences.forterMerchantPolicyPromotionAbuseMessage;
+    this.forterMerchantPolicyLimitedItemAbuse = forterSitePreferences.forterMerchantPolicyLimitedItemAbuse.value;
+    this.forterMerchantPolicyLimitedItemAbuseMessage = forterSitePreferences.forterMerchantPolicyLimitedItemAbuseMessage;
+    this.forterMerchantPolicyReseller = forterSitePreferences.forterMerchantPolicyReseller.value;
+    this.forterMerchantPolicyResellerMessage = forterSitePreferences.forterMerchantPolicyResellerMessage;
 
     this.STATUS_APPROVED     = "APPROVED";
     this.STATUS_DECLINED     = "DECLINED";
     this.STATUS_NOT_REVIEWED = "NOT_REVIEWED";
     this.STATUS_FAILED       = "FAILED";
     this.STATUS_NOT_SENT     = "NOT_SENT";
-    
+
     this.CUSTOMER_LOGIN          = "LOGIN";
     this.CUSTOMER_LOGOUT         = "LOGOUT";
     this.CUSTOMER_CREATE         = "REGISTRATION";
@@ -44,19 +57,33 @@ function ForterConfig() {
 }
 
 ForterConfig.prototype.saveSiteCredentials = function() {
-    var site = dw.system.Site.getCurrent();
-    site.setCustomPreferenceValue("forterSiteID", this.forterSiteID);
-    site.setCustomPreferenceValue("forterSecretKey", this.forterSecretKey);
+    currentSite.setCustomPreferenceValue("forterSiteID", this.forterSiteID);
+    currentSite.setCustomPreferenceValue("forterSecretKey", this.forterSecretKey);
 }
 
 ForterConfig.prototype.saveSitePreferences = function() {
-    var site = dw.system.Site.getCurrent();
-    site.setCustomPreferenceValue("forterEnabled", this.forterEnabled);
-    site.setCustomPreferenceValue("forterShowDeclinedPage", this.forterShowDeclinedPage);
-    site.setCustomPreferenceValue("forterCustomDeclineMessage", this.forterCustomDeclineMessage);
-    site.setCustomPreferenceValue("forterAutoInvoiceOnApprove", this.forterAutoInvoiceOnApprove);
-    site.setCustomPreferenceValue("forterCancelOrderOnDecline", this.forterCancelOrderOnDecline);
-    site.setCustomPreferenceValue("forterWeeksAmount", this.forterWeeksAmount);
+    currentSite.setCustomPreferenceValue("forterEnabled", this.forterEnabled);
+    currentSite.setCustomPreferenceValue("forterShowDeclinedPage", this.forterShowDeclinedPage);
+    currentSite.setCustomPreferenceValue("forterCustomDeclineMessage", this.forterCustomDeclineMessage);
+    currentSite.setCustomPreferenceValue("forterAutoInvoiceOnApprove", this.forterAutoInvoiceOnApprove);
+    currentSite.setCustomPreferenceValue("forterCancelOrderOnDecline", this.forterCancelOrderOnDecline);
+    currentSite.setCustomPreferenceValue("forterWeeksAmount", this.forterWeeksAmount);
+}
+
+ForterConfig.prototype.saveAbusePolicyPreferences = function() {
+    currentSite.setCustomPreferenceValue("forterAbusePolicySettingsEnabled", this.forterAbusePolicySettingsEnabled);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyReshipper", this.forterMerchantPolicyReshipper);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyReshipperMessage", this.forterMerchantPolicyReshipperMessage);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyCheckoutINR", this.forterMerchantPolicyCheckoutINR);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyCheckoutINRMessage", this.forterMerchantPolicyCheckoutINRMessage);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyCheckoutReturns", this.forterMerchantPolicyCheckoutReturns);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyCheckoutReturnsMessage", this.forterMerchantPolicyCheckoutReturnsMessage);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyPromotionAbuse", this.forterMerchantPolicyPromotionAbuse);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyPromotionAbuseMessage", this.forterMerchantPolicyPromotionAbuseMessage);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyLimitedItemAbuse", this.forterMerchantPolicyLimitedItemAbuse);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyLimitedItemAbuseMessage", this.forterMerchantPolicyLimitedItemAbuseMessage);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyReseller", this.forterMerchantPolicyReseller);
+    currentSite.setCustomPreferenceValue("forterMerchantPolicyResellerMessage", this.forterMerchantPolicyResellerMessage);
 }
 
 Object.freeze(ForterConfig);

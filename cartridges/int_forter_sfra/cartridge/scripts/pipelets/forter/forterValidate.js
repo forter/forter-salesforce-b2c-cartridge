@@ -135,8 +135,37 @@ function validateOrder(args) {
         }
     }
 
+    /**
+     * reason codes actions
+     *
+     * 0 - default behaviour - forterCancelOrderOnDecline condition
+     * 1 - no action (skip Capture)
+     * 2 - cancel, void and show custom error message
+     */
+
+    fResponse.reasonCodeAction = 0;
+
+    if (!empty(fResponse.reasonCode) && sitePrefs.forterAbusePolicySettingsEnabled) {
+        var reasonActionPref = 'forter' + fResponse.reasonCode;
+
+        if (reasonActionPref in sitePrefs && !empty(sitePrefs[reasonActionPref])) {
+            fResponse.reasonCodeAction = sitePrefs[reasonActionPref].value;
+        }
+    }
+
     if (fResponse.actionEnum === 'DECLINED') {
-        if (sitePrefs.forterCancelOrderOnDecline === true) {
+        if (fResponse.reasonCodeAction === 1) {
+            fResponse.processorAction = 'skipCapture';
+        } else if (fResponse.reasonCodeAction === 2) {
+            fResponse.processorAction = 'void';
+            var errorMessagePref = 'forter' + fResponse.reasonCode + 'Message';
+
+            if (errorMessagePref in sitePrefs && !empty(sitePrefs[errorMessagePref])) {
+                resp.PlaceOrderError = {
+                    code: sitePrefs[errorMessagePref]
+                };
+            }
+        } else if (sitePrefs.forterCancelOrderOnDecline === true) {
             fResponse.processorAction = 'void';
             if (sitePrefs.forterShowDeclinedPage === true && sitePrefs.forterCustomDeclineMessage) {
                 resp.PlaceOrderError = {

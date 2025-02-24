@@ -1,0 +1,221 @@
+<isdecorate template="application/MenuFrame">
+    <iscontent type="text/html" charset="UTF-8">
+    <isinclude template="inc/Modules">
+    <isinclude template="util/modules"/>
+    <isset name="Resource" value="${require('dw/web/Resource')}" scope="page" />
+    <isset name="URLUtils" value="${require('dw/web/URLUtils')}" scope="page" />
+
+    <link rel="stylesheet" href="${URLUtils.staticURL('/css/abuse-policy-settings.css')}" />
+    <link rel="stylesheet" href="${dw.web.URLUtils.staticURL('/css/switch.css')}" />
+
+    <!-- Page Navigator -->
+    <isbreadcrumb name1="${pdict.MAIN_MENU_NAME}" url1="${pdict.TOP_URL.toString()}" name2="Abuse Policy Settings">
+
+    <!-- EO Page Navigator -->
+    <div class="overview_title">${Resource.msg('forter_bm.configuration.abusepolicysettings.general.title','forter_bm',null)}</div>
+    <div class="overview_title_description">${Resource.msg('forter_bm.configuration.abusepolicysettings.overview.description','forter_bm',null)}</div>
+
+    <table class="main-table" cellpadding="5">
+        <form action="${URLUtils.https('ForterExtension-AbusePolicySettingsSave')}" id="forter-abuse-policy-settings-form" method="post">
+            <tbody>
+                <iscomment> Forter Logo </iscomment>
+                <tr>
+                    <td>
+                        <img class="forter-logo" src="${URLUtils.staticURL('/icons/forter_logo.png')}" />
+                    </td>
+                </tr>
+                <iscomment> Forter Logo Subtitle </iscomment>
+                <tr>
+                    <td class="forter-subtitle-container">
+                        <img class="forter-subtitle-img" src="${URLUtils.staticURL('/icons/vi.png')}" />
+                        <div class="forter-subtitle-text">${Resource.msg('forter_bm.configuration.abusepolicysettings.logotext', 'forter_bm', null)}</div>
+                    </td>
+                </tr>
+
+                <iscomment> Forter Abuse Policy Settings Switch Title </iscomment>
+                <tr>
+                    <td>
+                        <h1 class="forter-section-title">${Resource.msg('forter_bm.configuration.abusepolicysettings.enabled.title', 'forter_bm', null)}</h1>
+                    </td>
+                </tr>
+
+                <iscomment> Forter Abuse Policy Settings Switch </iscomment>
+                <tr>
+                    <td>
+                        <label for="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.htmlName}" class="forter-text" />
+                            ${Resource.msg('forter_bm.configuration.abusepolicysettings.enabled.label', 'forter_bm', null)}
+                        </label>
+                        <div class="switch-container">
+                            <label class="switch switch-left-right" for="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.htmlName}">
+                                <input type="checkbox" class="switch-input"
+                                    id="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.htmlName}"
+                                    value="true" name="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.htmlName}"
+                                    <isif condition="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.checked}">checked="checked"</isif>
+                                />
+                                <span class="switch-label"></span>
+                                <span class="switch-handle"></span>
+                                <label for="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.htmlName}" class="switch-yes">${Resource.msg('forter_bm.configuration.abusepolicysettings.enabled.yes', 'forter_bm', null)}</label>
+                                <label for="${pdict.CurrentForms.forterabusepolicysettings.forterAbusePolicySettingsEnabled.htmlName}" class="switch-no">${Resource.msg('forter_bm.configuration.abusepolicysettings.enabled.no', 'forter_bm', null)}</label>
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+
+                <iscomment> Forter Abuse Policy Settings Title </iscomment>
+                <tr>
+                    <td>
+                        <h1 class="forter-section-title">${Resource.msg('forter_bm.configuration.abusepolicysettings.general.title', 'forter_bm', null)}</h1>
+
+                        <iscomment> Reshipper Section  </iscomment>
+                        <div class="forter-settings-section">
+                            <div class="forter-abusepolicysettings-input-container">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipper.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.reshipper.action', 'forter_bm', null)}</label>
+                                <select class="forter-abusepolicysettings-select reshipper" id="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipper.htmlName}" name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipper.htmlName}">
+                                    <isloop items="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipper.options}" var="option">
+                                        <option value="${option.htmlValue}" <isif condition="${option.selected}">selected</isif>>
+                                            ${Resource.msg(option.label, 'forter_bm', null)}
+                                        </option>
+                                    </isloop>
+                                </select>
+                            </div>
+
+                            <div class="forter-abusepolicysettings-input-container ${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipper.htmlValue === '1' ? 'hide' : ''}">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipperMessage.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.reshipper.message', 'forter_bm', null)}</label>
+                                <input
+                                    type="text"
+                                    class="forter-abusepolicysettings-error-message reshipper"
+                                    name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipperMessage.htmlName}"
+                                    value="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReshipperMessage.htmlValue}"
+                                />
+                            </div>
+                        </div>
+
+                        <iscomment> Checkout INR Section </iscomment>
+                        <div class="forter-settings-section">
+                            <div class="forter-abusepolicysettings-input-container">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINR.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.checkout.inr.action', 'forter_bm', null)}</label>
+                                <select class="forter-abusepolicysettings-select checkoutinr" id="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINR.htmlName}" name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINR.htmlName}">
+                                    <isloop items="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINR.options}" var="option">
+                                        <option value="${option.htmlValue}" <isif condition="${option.selected}">selected</isif>>
+                                            ${Resource.msg(option.label, 'forter_bm', null)}
+                                        </option>
+                                    </isloop>
+                                </select>
+                            </div>
+
+                            <div class="forter-abusepolicysettings-input-container ${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINR.htmlValue === '1' ? 'hide' : ''}">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINRMessage.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.checkout.inr.message', 'forter_bm', null)}</label>
+                                <input
+                                    type="text"
+                                    class="forter-abusepolicysettings-error-message checkoutinr"
+                                    name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINRMessage.htmlName}"
+                                    value="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutINRMessage.htmlValue}"
+                                />
+                            </div>
+                        </div>
+
+                        <iscomment> Checkout Returns </iscomment>
+                        <div class="forter-settings-section">
+                            <div class="forter-abusepolicysettings-input-container">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturns.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.checkout.returns.action', 'forter_bm', null)}</label>
+                                <select class="forter-abusepolicysettings-select checkoutreturns" id="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturns.htmlName}" name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturns.htmlName}">
+                                    <isloop items="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturns.options}" var="option">
+                                        <option value="${option.htmlValue}" <isif condition="${option.selected}">selected</isif>>
+                                            ${Resource.msg(option.label, 'forter_bm', null)}
+                                        </option>
+                                    </isloop>
+                                </select>
+                            </div>
+
+                            <div class="forter-abusepolicysettings-input-container ${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturns.htmlValue === '1' ? 'hide' : ''}">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturnsMessage.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.checkout.returns.message', 'forter_bm', null)}</label>
+                                <input
+                                    type="text"
+                                    class="forter-abusepolicysettings-error-message checkoutreturns"
+                                    name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturnsMessage.htmlName}"
+                                    value="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyCheckoutReturnsMessage.htmlValue}"
+                                />
+                            </div>
+                        </div>
+
+                        <iscomment> Checkout Returns </iscomment>
+                        <div class="forter-settings-section">
+                            <div class="forter-abusepolicysettings-input-container">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuse.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.promotion.abuse.action', 'forter_bm', null)}</label>
+                                <select class="forter-abusepolicysettings-select promotionabuse" id="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuse.htmlName}" name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuse.htmlName}">
+                                    <isloop items="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuse.options}" var="option">
+                                        <option value="${option.htmlValue}" <isif condition="${option.selected}">selected</isif>>
+                                            ${Resource.msg(option.label, 'forter_bm', null)}
+                                        </option>
+                                    </isloop>
+                                </select>
+                            </div>
+
+                            <div class="forter-abusepolicysettings-input-container ${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuse.htmlValue === '1' ? 'hide' : ''}">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuseMessage.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.promotion.abuse.message', 'forter_bm', null)}</label>
+                                <input
+                                    type="text"
+                                    class="forter-abusepolicysettings-error-message promotionabuse"
+                                    name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuseMessage.htmlName}"
+                                    value="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyPromotionAbuseMessage.htmlValue}"
+                                />
+                            </div>
+                        </div>
+
+                        <iscomment> Limited Item Abuse </iscomment>
+                        <div class="forter-settings-section">
+                            <div class="forter-abusepolicysettings-input-container">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuse.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.limited.item.abuse.action', 'forter_bm', null)}</label>
+                                <select class="forter-abusepolicysettings-select limiteditemabuse" id="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuse.htmlName}" name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuse.htmlName}">
+                                    <isloop items="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuse.options}" var="option">
+                                        <option value="${option.htmlValue}" <isif condition="${option.selected}">selected</isif>>
+                                            ${Resource.msg(option.label, 'forter_bm', null)}
+                                        </option>
+                                    </isloop>
+                                </select>
+                            </div>
+
+                            <div class="forter-abusepolicysettings-input-container ${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuse.htmlValue === '1' ? 'hide' : ''}">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuseMessage.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.limited.item.abuse.message', 'forter_bm', null)}</label>
+                                <input
+                                    type="text"
+                                    class="forter-abusepolicysettings-error-message limiteditemabuse"
+                                    name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuseMessage.htmlName}"
+                                    value="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyLimitedItemAbuseMessage.htmlValue}"
+                                />
+                            </div>
+                        </div>
+
+                        <iscomment> Reseller Section </iscomment>
+                        <div class="forter-settings-section">
+                            <div class="forter-abusepolicysettings-input-container">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReseller.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.reseller.action', 'forter_bm', null)}</label>
+                                <select class="forter-abusepolicysettings-select reseller" id="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReseller.htmlName}" name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReseller.htmlName}">
+                                    <isloop items="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReseller.options}" var="option">
+                                        <option value="${option.htmlValue}" <isif condition="${option.selected}">selected</isif>>
+                                            ${Resource.msg(option.label, 'forter_bm', null)}
+                                        </option>
+                                    </isloop>
+                                </select>
+                            </div>
+
+                            <div class="forter-abusepolicysettings-input-container ${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyReseller.htmlValue === '1' ? 'hide' : ''}">
+                                <label class="forter-abusepolicysettings-label" for="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyResellerMessage.htmlName}">${Resource.msg('forter_bm.configuration.abusepolicysettings.reseller.message', 'forter_bm', null)}</label>
+                                <input
+                                    type="text"
+                                    class="forter-abusepolicysettings-error-message reseller"
+                                    name="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyResellerMessage.htmlName}"K
+                                    value="${pdict.CurrentForms.forterabusepolicysettings.forterMerchantPolicyResellerMessage.htmlValue}"
+                                />
+                            </div>
+                        </div>
+
+                        <input id="forter-abusepolicysettings-save" name="${pdict.CurrentForms.forterabusepolicysettings.save.htmlName}" class="js-abusepolicysettings-submit-button" type="submit" value="${Resource.msg('forter_bm.configuration.abusepolicysettings.save', 'forter_bm', null)}" />
+                    </td>
+                </tr>
+            </tbody>
+        </form>
+    </table>
+
+    <script type="text/javascript" src="${URLUtils.staticURL('js/forterAbusePolicySettings.js')}"></script>
+</isdecorate>
