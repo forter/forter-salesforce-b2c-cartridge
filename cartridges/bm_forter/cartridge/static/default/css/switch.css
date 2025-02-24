@@ -1,0 +1,163 @@
+@charset "UTF-8";
+
+.switch-container {
+    display: inline-block;
+    float: right;
+}
+
+.switch-yes {
+    color: #E0E0E0;
+    position: absolute;
+    top: -0.8rem;
+    left: -4.4rem;
+}
+
+.switch-no {
+    color: #6E7D81;
+    position: absolute;
+    top: -0.8rem;
+    right: -3.8rem;
+}
+
+.switch-yes, .switch-no {
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 4.0rem;
+    height: 1.5rem;
+    border-radius: 1.8rem;
+    cursor: pointer;
+    left: -4.0rem;
+    vertical-align: bottom;
+}
+
+.switch-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.switch-label {
+    position: relative;
+    display: block;
+    height: inherit;
+    border-radius: inherit;
+}
+
+.switch-label:before, .switch-label:after {
+    position: absolute;
+    top: 50%;
+    margin-top: -.5em;
+    line-height: 1;
+    -webkit-transition: inherit;
+    -moz-transition: inherit;
+    -o-transition: inherit;
+    transition: inherit;
+}
+
+.switch-label:before {
+    content: "";
+    right: 1.1rem;
+    color: #aaaaaa;
+}
+
+.switch-label:after {
+    content: "";
+    left: 1.1rem;
+    color: #FFFFFF;
+    opacity: 0;
+}
+
+.switch-input:checked ~ .switch-label:before {
+    opacity: 0;
+}
+
+.switch-input:checked ~ .switch-label:after {
+    opacity: 1;
+}
+
+.switch-handle {
+    position: absolute;
+    top: -0.7rem;
+    left: 2.0rem;
+    width: 2.0rem;
+    height: 2.0rem;
+}
+
+.switch-handle:before {
+    content: "";
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    margin: -0.6rem 0 0 -0.6rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    background: linear-gradient(to bottom, #6E7D81, #6E7D81);
+    background-image: -webkit-linear-gradient(top, #6E7D81, #6E7D81);
+    border-radius: 1.1rem;
+}
+
+.switch-input:checked ~ .switch-handle {
+    left: -0.7rem;
+}
+
+.switch-input:checked ~ .switch-handle:before {
+    background: linear-gradient(to bottom, #007CBF, #007CBF);
+    background-image: -webkit-linear-gradient(top, #007CBF, #007CBF);
+}
+
+.switch-input:checked ~ .switch-yes {
+    color: #007CBF;
+}
+
+.switch-input:checked ~ .switch-no {
+    color: #E0E0E0;
+}
+
+.switch-label, .switch-handle {
+    transition: All 0.3s ease;
+    -webkit-transition: All 0.3s ease;
+    -moz-transition: All 0.3s ease;
+    -o-transition: All 0.3s ease;
+}
+
+.switch-left-right .switch-label {
+    overflow: hidden;
+}
+
+.switch-left-right .switch-label:before, .switch-left-right .switch-label:after {
+    width: 2.0rem;
+    top: 0.4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.switch-left-right .switch-label:before {
+    background: #E0E0E0;
+    padding-left: 4.0rem;
+}
+
+.switch-left-right .switch-label:after {
+    background: #E0E0E0;
+    left: 0;
+    opacity: 1;
+    width: 100%;
+}
+
+.switch-left-right .switch-input:checked ~ .switch-label:before {
+    opacity: 1;
+}
+
+.switch-left-right .switch-input:checked ~ .switch-label:after {
+    left: -4.0rem;
+}
+
+.switch-left-right .switch-input:checked ~ .switch-label {
+    background: inherit;
+}

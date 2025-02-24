@@ -257,7 +257,71 @@ function save() {
     }).render('forter/json');
 }
 
+function abusePolicySettings() {
+    try {
+        var ForterConfig = require('*/cartridge/scripts/lib/forter/forterConfig.ds').ForterConfig;
+        var form = session.forms.forterabusepolicysettings;
+
+        form.forterAbusePolicySettingsEnabled.value = ForterConfig.forterAbusePolicySettingsEnabled;
+        form.forterMerchantPolicyReshipper.value = ForterConfig.forterMerchantPolicyReshipper;
+        form.forterMerchantPolicyReshipperMessage.value = ForterConfig.forterMerchantPolicyReshipperMessage;
+        form.forterMerchantPolicyCheckoutINR.value = ForterConfig.forterMerchantPolicyCheckoutINR;
+        form.forterMerchantPolicyCheckoutINRMessage.value = ForterConfig.forterMerchantPolicyCheckoutINRMessage;
+        form.forterMerchantPolicyCheckoutReturns.value = ForterConfig.forterMerchantPolicyCheckoutReturns;
+        form.forterMerchantPolicyCheckoutReturnsMessage.value = ForterConfig.forterMerchantPolicyCheckoutReturnsMessage;
+        form.forterMerchantPolicyPromotionAbuse.value = ForterConfig.forterMerchantPolicyPromotionAbuse;
+        form.forterMerchantPolicyPromotionAbuseMessage.value = ForterConfig.forterMerchantPolicyPromotionAbuseMessage;
+        form.forterMerchantPolicyLimitedItemAbuse.value = ForterConfig.forterMerchantPolicyLimitedItemAbuse;
+        form.forterMerchantPolicyLimitedItemAbuseMessage.value = ForterConfig.forterMerchantPolicyLimitedItemAbuseMessage;
+        form.forterMerchantPolicyReseller.value = ForterConfig.forterMerchantPolicyReseller;
+        form.forterMerchantPolicyResellerMessage.value = ForterConfig.forterMerchantPolicyResellerMessage;
+
+        app.getView({
+            MAIN_MENU_NAME: 'Forter',
+            TOP_URL: URLUtils.url('SiteNavigationBar-ShowMenuitemOverview', 'CurrentMenuItemId', 'forter_id01')
+        }).render('forter/forterabusepolicysettings');
+    } catch (error) {
+        var ForterLogger = require('*/cartridge/scripts/lib/forter/forterLogger');
+        var log = new ForterLogger('ForterExtension-AbusePolicySettings');
+        log.error(error.message);
+    }
+}
+
+function abusePolicySettingsSave() {
+    try {
+        var ForterConfig = require('*/cartridge/scripts/lib/forter/forterConfig.ds').ForterConfig;
+        var form = session.forms.forterabusepolicysettings;
+
+        ForterConfig.forterAbusePolicySettingsEnabled = form.forterAbusePolicySettingsEnabled.checked;
+        ForterConfig.forterMerchantPolicyReshipper = form.forterMerchantPolicyReshipper.value;
+        ForterConfig.forterMerchantPolicyReshipperMessage = form.forterMerchantPolicyReshipperMessage.value;
+        ForterConfig.forterMerchantPolicyCheckoutINR = form.forterMerchantPolicyCheckoutINR.value;
+        ForterConfig.forterMerchantPolicyCheckoutINRMessage = form.forterMerchantPolicyCheckoutINRMessage.value;
+        ForterConfig.forterMerchantPolicyCheckoutReturns = form.forterMerchantPolicyCheckoutReturns.value;
+        ForterConfig.forterMerchantPolicyCheckoutReturnsMessage = form.forterMerchantPolicyCheckoutReturnsMessage.value;
+        ForterConfig.forterMerchantPolicyPromotionAbuse = form.forterMerchantPolicyPromotionAbuse.value;
+        ForterConfig.forterMerchantPolicyPromotionAbuseMessage = form.forterMerchantPolicyPromotionAbuseMessage.value;
+        ForterConfig.forterMerchantPolicyLimitedItemAbuse = form.forterMerchantPolicyLimitedItemAbuse.value;
+        ForterConfig.forterMerchantPolicyLimitedItemAbuseMessage = form.forterMerchantPolicyLimitedItemAbuseMessage.value;
+        ForterConfig.forterMerchantPolicyReseller = form.forterMerchantPolicyReseller.value;
+        ForterConfig.forterMerchantPolicyResellerMessage = form.forterMerchantPolicyResellerMessage.value;
+
+        Transaction.wrap(function () {
+            ForterConfig.saveAbusePolicyPreferences();
+        });
+
+        // eslint-disable-next-line no-undef
+        response.redirect(URLUtils.https('ForterExtension-AbusePolicySettings'));
+    } catch (error) {
+        var ForterLogger = require('*/cartridge/scripts/lib/forter/forterLogger');
+        var log = new ForterLogger('ForterExtension-AbusePolicySettings');
+        log.error(error.message);
+    }
+}
+
 exports.Config = guard.all(config);
 exports.Order = guard.all(order);
 exports.Save = guard.all(save);
 exports.Link = guard.all(link);
+exports.AbusePolicySettings = guard.all(abusePolicySettings);
+exports.AbusePolicySettingsSave = guard.all(abusePolicySettingsSave);

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+
+    <!-- Enabled -->
+    <field formid="forterAbusePolicySettingsEnabled" label="forter_bm.configuration.abusepolicysettings.enabled.label"
+        type="boolean" />
+
+    <!-- Reshipper Policy Configuration -->
+    <field formid="forterMerchantPolicyReshipper" label="forter_bm.configuration.abusepolicysettings.reshipper" type="integer">
+        <options>
+            <option optionid="0" label="forter_bm.configuration.abusepolicysettings.no.action" value="1" />
+            <option optionid="1" label="forter_bm.configuration.abusepolicysettings.cancel.show.error.message" value="2" />
+        </options>
+    </field>
+
+    <field formid="forterMerchantPolicyReshipperMessage" label="forter_bm.configuration.abusepolicysettings.reshipper.message" type="string" />
+    <!-- End of Reshipper Policy -->
+
+    <!-- Checkout INR (Item Not Received) Policy Configuration -->
+    <field formid="forterMerchantPolicyCheckoutINR" label="forter_bm.configuration.abusepolicysettings.checkout.inr" type="integer">
+        <options>
+            <option optionid="0" label="forter_bm.configuration.abusepolicysettings.no.action" value="1" />
+            <option optionid="1" label="forter_bm.configuration.abusepolicysettings.cancel.show.error.message" value="2" />
+        </options>
+    </field>
+
+    <field formid="forterMerchantPolicyCheckoutINRMessage" label="forter_bm.configuration.abusepolicysettings.checkout.inr.message" type="string" />
+    <!-- End of Checkout INR Policy -->
+
+    <!-- Checkout Returns Policy Configuration -->
+    <field formid="forterMerchantPolicyCheckoutReturns" label="forter_bm.configuration.abusepolicysettings.checkout.returns" type="integer">
+        <options>
+            <option optionid="0" label="forter_bm.configuration.abusepolicysettings.no.action" value="1" />
+            <option optionid="1" label="forter_bm.configuration.abusepolicysettings.cancel.show.error.message" value="2" />
+        </options>
+    </field>
+
+    <field formid="forterMerchantPolicyCheckoutReturnsMessage" label="forter_bm.configuration.abusepolicysettings.checkout.returns.message" type="string" />
+    <!-- End of Checkout Returns Policy -->
+
+    <!-- Promotion Abuse Policy Configuration -->
+    <field formid="forterMerchantPolicyPromotionAbuse" label="forter_bm.configuration.abusepolicysettings.promotion.abuse" type="integer">
+        <options>
+            <option optionid="0" label="forter_bm.configuration.abusepolicysettings.no.action" value="1" />
+            <option optionid="1" label="forter_bm.configuration.abusepolicysettings.cancel.show.error.message" value="2" />
+        </options>
+    </field>
+
+    <field formid="forterMerchantPolicyPromotionAbuseMessage" label="forter_bm.configuration.abusepolicysettings.promotion.abuse.message" type="string" />
+    <!-- End of Promotion Abuse Policy -->
+
+    <!-- Limited Item Abuse Policy Configuration -->
+    <field formid="forterMerchantPolicyLimitedItemAbuse" label="forter_bm.configuration.abusepolicysettings.limited.item.abuse" type="integer">
+        <options>
+            <option optionid="0" label="forter_bm.configuration.abusepolicysettings.no.action" value="1" />
+            <option optionid="1" label="forter_bm.configuration.abusepolicysettings.cancel.show.error.message" value="2" />
+        </options>
+    </field>
+
+    <field formid="forterMerchantPolicyLimitedItemAbuseMessage" label="forter_bm.configuration.abusepolicysettings.limited.item.abuse.message" type="string" />
+    <!-- End of Limited Item Abuse Policy -->
+
+    <!-- Reseller Policy Configuration -->
+    <field formid="forterMerchantPolicyReseller" label="forter_bm.configuration.abusepolicysettings.reseller" type="integer">
+        <options>
+            <option optionid="0" label="forter_bm.configuration.abusepolicysettings.no.action" value="1" />
+            <option optionid="1" label="forter_bm.configuration.abusepolicysettings.cancel.show.error.message" value="2" />
+        </options>
+    </field>
+
+    <field formid="forterMerchantPolicyResellerMessage" label="forter_bm.configuration.abusepolicysettings.reseller.message" type="string" />
+    <!-- End of Reseller Policy -->
+
+    <action formid="save" label="forter_bm.configuration.abusepolicysettings.save" valid-form="true" />
+</form>
