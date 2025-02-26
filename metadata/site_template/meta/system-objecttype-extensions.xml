@@ -259,10 +259,10 @@
                 <type>int</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-        <min-value>1.0</min-value>
-        <default-value>4</default-value>
+                <min-value>1.0</min-value>
+                <default-value>4</default-value>
             </attribute-definition>
-           <attribute-definition attribute-id="forterForceForterDecision">
+            <attribute-definition attribute-id="forterForceForterDecision">
                 <display-name xml:lang="x-default">Force Forter decision</display-name>
                 <description xml:lang="x-default">For test porpuse only, this will force a response from Forter</description>
                 <type>enum-of-string</type>
@@ -291,6 +291,164 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
+            <attribute-definition attribute-id="forterAbusePolicySettingsEnabled">
+                <display-name xml:lang="x-default">Forter Abuse Policy Settings Enabled</display-name>
+                <description xml:lang="x-default">Defines if the Forter Abuse Policy Settings are enabled</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyReshipper">
+                <display-name xml:lang="x-default">Action for MerchantPolicyReshipper</display-name>
+                <description xml:lang="x-default">Select action, which should be taken for MerchantPolicyReshipper decline reason code</description>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">No action</display>
+                        <value>1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Cancel, void and show custom error message</display>
+                        <value>2</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyReshipperMessage">
+                <display-name xml:lang="x-default">MerchantPolicyReshipper error message</display-name>
+                <description xml:lang="x-default">Custom error message for MerchantPolicyReshipper decline reason code. If not set, defaults to forterCustomDeclineMessage</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyCheckoutINR">
+                <display-name xml:lang="x-default">Action for MerchantPolicyCheckoutINR</display-name>
+                <description xml:lang="x-default">Select action, which should be taken for MerchantPolicyCheckoutINR decline reason code</description>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">No action</display>
+                        <value>1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Cancel, void and show custom error message</display>
+                        <value>2</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyCheckoutINRMessage">
+                <display-name xml:lang="x-default">MerchantPolicyCheckoutINR error message</display-name>
+                <description xml:lang="x-default">Custom error message for MerchantPolicyCheckoutINR decline reason code. If not set, defaults to forterCustomDeclineMessage</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyCheckoutReturns">
+                <display-name xml:lang="x-default">Action for MerchantPolicyCheckoutReturns</display-name>
+                <description xml:lang="x-default">Select action, which should be taken for MerchantPolicyCheckoutReturns decline reason code</description>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">No action</display>
+                        <value>1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Cancel, void and show custom error message</display>
+                        <value>2</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyCheckoutReturnsMessage">
+                <display-name xml:lang="x-default">MerchantPolicyCheckoutReturns error message</display-name>
+                <description xml:lang="x-default">Custom error message for MerchantPolicyCheckoutReturns decline reason code. If not set, defaults to forterCustomDeclineMessage</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyPromotionAbuse">
+                <display-name xml:lang="x-default">Action for MerchantPolicyPromotionAbuse</display-name>
+                <description xml:lang="x-default">Select action, which should be taken for MerchantPolicyPromotionAbuse decline reason code</description>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">No action</display>
+                        <value>1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Cancel, void and show custom error message</display>
+                        <value>2</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyPromotionAbuseMessage">
+                <display-name xml:lang="x-default">MerchantPolicyPromotionAbuse error message</display-name>
+                <description xml:lang="x-default">Custom error message for MerchantPolicyPromotionAbuse decline reason code. If not set, defaults to forterCustomDeclineMessage</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyLimitedItemAbuse">
+                <display-name xml:lang="x-default">Action for MerchantPolicyLimitedItemAbuse</display-name>
+                <description xml:lang="x-default">Select action, which should be taken for MerchantPolicyLimitedItemAbuse decline reason code</description>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">No action</display>
+                        <value>1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Cancel, void and show custom error message</display>
+                        <value>2</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyLimitedItemAbuseMessage">
+                <display-name xml:lang="x-default">MerchantPolicyLimitedItemAbuse error message</display-name>
+                <description xml:lang="x-default">Custom error message for MerchantPolicyLimitedItemAbuse decline reason code. If not set, defaults to forterCustomDeclineMessage</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyReseller">
+                <display-name xml:lang="x-default">Action for MerchantPolicyReseller</display-name>
+                <description xml:lang="x-default">Select action, which should be taken for MerchantPolicyReseller decline reason code</description>
+                <type>enum-of-int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">No action</display>
+                        <value>1</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Cancel, void and show custom error message</display>
+                        <value>2</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="forterMerchantPolicyResellerMessage">
+                <display-name xml:lang="x-default">MerchantPolicyReseller error message</display-name>
+                <description xml:lang="x-default">Custom error message for MerchantPolicyReseller decline reason code. If not set, defaults to forterCustomDeclineMessage</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="forter">
@@ -305,6 +463,19 @@
                 <attribute attribute-id="forterWeeksAmount"/>
                 <attribute attribute-id="forterForceForterDecision"/>
                 <attribute attribute-id="versionAPI"/>
+                <attribute attribute-id="forterAbusePolicySettingsEnabled" />
+                <attribute attribute-id="forterMerchantPolicyReshipper"/>
+                <attribute attribute-id="forterMerchantPolicyReshipperMessage"/>
+                <attribute attribute-id="forterMerchantPolicyCheckoutINR"/>
+                <attribute attribute-id="forterMerchantPolicyCheckoutINRMessage"/>
+                <attribute attribute-id="forterMerchantPolicyCheckoutReturns"/>
+                <attribute attribute-id="forterMerchantPolicyCheckoutReturnsMessage"/>
+                <attribute attribute-id="forterMerchantPolicyPromotionAbuse"/>
+                <attribute attribute-id="forterMerchantPolicyPromotionAbuseMessage"/>
+                <attribute attribute-id="forterMerchantPolicyLimitedItemAbuse"/>
+                <attribute attribute-id="forterMerchantPolicyLimitedItemAbuseMessage"/>
+                <attribute attribute-id="forterMerchantPolicyReseller"/>
+                <attribute attribute-id="forterMerchantPolicyResellerMessage"/>
             </attribute-group>
             <attribute-group group-id="authorizenet">
                 <display-name xml:lang="x-default">Authorizenet</display-name>

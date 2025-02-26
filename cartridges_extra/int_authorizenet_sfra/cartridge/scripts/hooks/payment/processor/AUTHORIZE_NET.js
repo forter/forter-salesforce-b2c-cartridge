@@ -20,10 +20,10 @@ function Handle(basket, paymentInformation) {
         expirationYear   = paymentInformation.expirationYear.value,
         serverErrors     = [],
         creditCardStatus;
-    
+
     var cardType    = paymentInformation.cardType.value,
         paymentCard = PaymentMgr.getPaymentCard(cardType);
-    
+
     if (paymentCard) {
         creditCardStatus = paymentCard.verify(
             expirationMonth,
@@ -66,7 +66,7 @@ function Handle(basket, paymentInformation) {
 
         return { fieldErrors: [cardErrors], serverErrors: serverErrors, error: true };
     }
-    
+
     Transaction.wrap(function () {
         var paymentInstruments = currentBasket.getPaymentInstruments(
             PaymentInstrument.METHOD_CREDIT_CARD
@@ -140,7 +140,7 @@ function Authorize(orderNumber, paymentInstrument, paymentProcessor) {
             // },
             // forterCall = require('*/cartridge/scripts/pipelets/forter/forterValidate'),
             // forterDecision = forterCall.postAuthOrderStatusUpdate(argOrderUpdate, "CANCELED_BY_MERCHANT");
-            
+
             // if (forterDecision.result === false && forterDecision.updateAttempt == 2) {
             //     argOrderUpdate.updateAttempt = 2;
             //     forterDecision = forterCall.postAuthOrderStatusUpdate(argOrderUpdate, "CANCELED_BY_MERCHANT");
@@ -225,7 +225,7 @@ function Authorize(orderNumber, paymentInstrument, paymentProcessor) {
             //     forterDecision.updateAttempt = 2;
             //     forterCall.postAuthOrderStatusUpdate(argOrderUpdate, "PROCESSING");
             // }
-            
+
         }
     } catch (e) {
         error = true;
@@ -234,7 +234,14 @@ function Authorize(orderNumber, paymentInstrument, paymentProcessor) {
         );
     }
 
-    return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: error };
+    var customForterError = (forterDecision.PlaceOrderError) ? forterDecision.PlaceOrderError.code : '';
+
+    return {
+        fieldErrors: fieldErrors,
+        serverErrors: serverErrors,
+        error: error,
+        customForterError: customForterError
+    };
 }
 
 function doAuth(argCCAuth) {
