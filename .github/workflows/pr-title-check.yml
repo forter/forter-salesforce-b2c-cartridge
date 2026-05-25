@@ -1,7 +1,7 @@
 name: PR Title Convention Check
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, synchronize]
 jobs:
   call:
     uses: forter/.github/.github/workflows/pr-title-check.yml@v1
